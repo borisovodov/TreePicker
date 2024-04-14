@@ -5,8 +5,8 @@ import PackageDescription
 let package = Package(
     name: "HierarchicalPicker",
     platforms: [
-        .iOS(.v17),
         .macOS(.v14),
+        .iOS(.v17),
         .visionOS(.v1),
     ],
     products: [

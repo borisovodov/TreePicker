@@ -1,8 +1,8 @@
-# HierarchicalPicker
+# TreePicker
 
 **WORK IN PROGRESS. PLEASE, DON'T USE THIS PACKAGE.**
 
-HierarchicalPicker is a SwiftUI picker for selecting items from hierarchical structure. 
+TreePicker is a SwiftUI picker for selecting options from hierarchical data. 
 
 ## Features
 

@@ -3,7 +3,7 @@
 import PackageDescription
 
 let package = Package(
-    name: "HierarchicalPicker",
+    name: "TreePicker",
     platforms: [
         .macOS(.v14),
         .iOS(.v17),
@@ -11,14 +11,14 @@ let package = Package(
     ],
     products: [
         .library(
-            name: "HierarchicalPicker",
-            targets: ["HierarchicalPicker"]),
+            name: "TreePicker",
+            targets: ["TreePicker"]),
     ],
     targets: [
         .target(
-            name: "HierarchicalPicker"),
+            name: "TreePicker"),
         .testTarget(
-            name: "HierarchicalPickerTests",
-            dependencies: ["HierarchicalPicker"]),
+            name: "TreePickerTests",
+            dependencies: ["TreePicker"]),
     ]
 )

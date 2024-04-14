@@ -1,7 +1,7 @@
 import XCTest
-@testable import HierarchicalPicker
+@testable import TreePicker
 
-final class HierarchicalPickerTests: XCTestCase {
+final class TreePickerTests: XCTestCase {
     func testExample() throws {
         // XCTest Documentation
         // https://developer.apple.com/documentation/xctest

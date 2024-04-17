@@ -54,7 +54,7 @@ import SwiftUI
     }
 }
 
-extension TreeSinglePicker where Data.Element : Identifiable, ID == Data.Element.ID {
+extension TreeSinglePicker where Data.Element: Identifiable, ID == Data.Element.ID {
     
     /// Creates a hierarchical picker that computes its options on demand from an underlying collection of identifiable data and allowing users to have exactly one option always selected. Picker generates its label from a localized string key.
     @MainActor public init(_ titleKey: LocalizedStringKey, data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Label == Text {
@@ -68,7 +68,7 @@ extension TreeSinglePicker where Data.Element : Identifiable, ID == Data.Element
     }
     
     /// Creates a hierarchical picker that computes its options on demand from an underlying collection of identifiable data and allowing users to have exactly one option always selected. Picker generates its label from a string.
-    @MainActor public init<S>(_ title: S, data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where S : StringProtocol, Label == Text {
+    @MainActor public init<S>(_ title: S, data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where S: StringProtocol, Label == Text {
         self.data = data
         self.dataID = \.id
         self.children = children
@@ -104,7 +104,7 @@ extension TreeSinglePicker {
     }
     
     /// Creates a hierarchical picker that identifies its options based on a key path to the identifier of the underlying data and allowing users to have exactly one option always selected. Picker generates its label from a string.
-    @MainActor public init<S>(_ title: S, data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where S : StringProtocol, Label == Text {
+    @MainActor public init<S>(_ title: S, data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where S: StringProtocol, Label == Text {
         self.data = data
         self.dataID = id
         self.children = children

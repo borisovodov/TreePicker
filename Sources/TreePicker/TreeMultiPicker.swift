@@ -50,19 +50,70 @@ import SwiftUI
     @MainActor public var body: some View {
         NavigationLink {
             OutlineGroup(self.data, id: self.dataID, children: self.children) { dataElement in
-                HStack {
-                    Text("sdfsdfdfs")
-                    Spacer()
-                    self.rowContent(dataElement)
+                Button(action: { self.select(dataElement) }) {
+                    HStack {
+                        self.selectionIndicator(dataElement)
+                        self.rowContent(dataElement)
+                    }
                 }
             }
         } label: {
             LabeledContent {
-                Text("тут выбранный элемент")
+                self.selectedOptions
             } label: {
                 self.label
             }
-            .labeledContentStyle(.automatic)
+        }
+    }
+    
+    private var selectedOptions: some View {
+        Text("тут выбранный элемент")
+    }
+    
+    @ViewBuilder private func selectionIndicator(_ dataElement: Data.Element) -> some View {
+        if (self.isSelected(dataElement)) {
+            Label("????", systemImage: "checkmark")
+        } else {
+            EmptyView()
+        }
+    }
+    
+    private func isSelected(_ dataElement: Data.Element) -> Bool {
+        // If selection has same type as `Data.Element` then compare selection and `Data.Element`.
+        if let dataElement = dataElement as? SelectionValue {
+            return self.selection.wrappedValue.contains(dataElement)
+        }
+        
+        // If selection has same type as `Data.Element.ID` then compare selection and `Data.Element.ID`.
+        if let dataElementID = dataElement[keyPath: self.dataID] as? SelectionValue {
+            return self.selection.wrappedValue.contains(dataElementID)
+        }
+        
+        // Return `false` if selection has different type or dataElement isn't selected.
+        return false
+    }
+    
+    private func select(_ dataElement: Data.Element) {
+        if self.isSelected(dataElement) {
+            if let dataElement = dataElement as? SelectionValue {
+                self.selection.wrappedValue.remove(dataElement)
+                return
+            }
+            
+            if let dataElementID = dataElement[keyPath: self.dataID] as? SelectionValue {
+                self.selection.wrappedValue.remove(dataElementID)
+                return
+            }
+        } else {
+            if let dataElement = dataElement as? SelectionValue {
+                self.selection.wrappedValue.insert(dataElement)
+                return
+            }
+            
+            if let dataElementID = dataElement[keyPath: self.dataID] as? SelectionValue {
+                self.selection.wrappedValue.insert(dataElementID)
+                return
+            }
         }
     }
 }

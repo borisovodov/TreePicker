@@ -74,10 +74,6 @@ import SwiftUI
         Text("тут выбранный элемент")
     }
     
-    private var isNoneSelected: Bool {
-        return self.selection.wrappedValue == nil
-    }
-    
     @ViewBuilder private func selectionIndicator(_ dataElement: Data.Element) -> some View {
         if (self.isSelected(dataElement)) {
             Label("????", systemImage: "checkmark")
@@ -86,51 +82,41 @@ import SwiftUI
         }
     }
     
-    // CURRENT: всё хуета, нужно делать свои кастомные теги: https://medium.com/@Barbapapapps/beyond-basics-implementing-a-custom-picker-in-swiftui-88c01e283ac1
-    // https://github.com/GeorgeElsham/TagExtractor/tree/main
     private func isSelected(_ dataElement: Data.Element) -> Bool {
         // If selection is `nil` then current `dataElement` isn't selected.
         guard let selection = self.selection.wrappedValue else {
-            print("~~~nil")
             return false
         }
         
         // If selection has same type as `Data.Element` then compare selection and `Data.Element`.
-        if selection is Data.Element {
-            print("~~~selection is Data.Element")
-            return dataElement as? SelectionValue == selection
+        if let dataElement = dataElement as? SelectionValue {
+            return dataElement == selection
         }
         
         // If selection has same type as `Data.Element.ID` then compare selection and `Data.Element.ID`.
-        if selection is ID {
-            print("~~~selection is ID")
-            return dataElement[keyPath: self.dataID] as? SelectionValue == selection
+        if let dataElementID = dataElement[keyPath: self.dataID] as? SelectionValue {
+            return dataElementID == selection
         }
         
         // Return `false` if selection has different type or dataElement isn't selected.
-        print("~~~false")
-        return false
-    }
-    
-    private var isNilElementSelected: Bool {
-        guard let _ = self.selection.wrappedValue else { return true }
-        
         return false
     }
     
     private func select(_ dataElement: Data.Element) {
-        // тут nil если пусто.
-        if self.selection.wrappedValue is Data.Element {
-            print("~~~selection is Data.Element in select")
-            self.selection.wrappedValue = self.isSelected(dataElement) ? nil : dataElement as? SelectionValue
+        if self.isSelected(dataElement) {
+            self.selection.wrappedValue = nil
+            return
         }
         
-        if self.selection.wrappedValue is ID {
-            print("~~~selection is ID in select")
-            self.selection.wrappedValue = self.isSelected(dataElement) ? nil : dataElement[keyPath: self.dataID] as? SelectionValue
+        if let dataElement = dataElement as? SelectionValue {
+            self.selection.wrappedValue = dataElement
+            return
         }
-        print("~~~nil")
-        self.selection.wrappedValue = nil
+        
+        if let dataElementID = dataElement[keyPath: self.dataID] as? SelectionValue {
+            self.selection.wrappedValue = dataElementID
+            return
+        }
     }
 }
 

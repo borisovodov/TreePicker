@@ -37,16 +37,24 @@ let locationsTree: [Location] = [
     .init(title: "🇷🇺 Russia", children: nil)
 ]
 
+#Preview("TreeOptionalPickerPreview") {
+    TreeOptionalPickerPreview()
+}
+
+#Preview("TreeMultiPickerPreview") {
+    TreeMultiPickerPreview()
+}
+
+#Preview("TreeSinglePickerPreview") {
+    TreeSinglePickerPreview()
+}
+
 #Preview("ListPreview") {
     ListPreview()
 }
 
 #Preview("PickerPreview") {
     PickerPreview()
-}
-
-#Preview("TreeOptionalPickerPreview") {
-    TreeOptionalPickerPreview()
 }
 
 struct ListPreview: View {
@@ -107,7 +115,7 @@ struct PickerPreview: View {
 
 struct TreeOptionalPickerPreview: View {
     @State private var selectedLocation: Location? = .init(title: "🇷🇺 Russia")
-    @State private var selectedLocationID: String? = "🇷🇺 Russia" // работает. выдаёт значение атрибута, указанного в поле id у List.
+    @State private var selectedLocationID: String? = "🇷🇺 Russia"
     
     var body: some View {
         NavigationStack {
@@ -117,6 +125,45 @@ struct TreeOptionalPickerPreview: View {
                 }
                 
                 Text(selectedLocation?.title ?? "nil")
+            }
+        }
+    }
+}
+
+struct TreeMultiPickerPreview: View {
+    @State private var selectedLocations: Set<Location> = [.init(title: "🇷🇺 Russia")]
+    @State private var selectedLocationsID: Set<String> = ["🇷🇺 Russia"]
+    
+    var body: some View {
+        NavigationStack {
+            Form {
+                TreeMultiPicker("PickerPreview", data: locationsTree, id: \.id, children: \.children, selection: $selectedLocations) { location in
+                    Text(location.id)
+                }
+                
+                ForEach(Array(selectedLocations), id: \.id) { location in
+                    Text(location.title)
+                }
+//                ForEach(Array(selectedLocationsID), id: \.self) { location in
+//                    Text(location)
+//                }
+            }
+        }
+    }
+}
+
+struct TreeSinglePickerPreview: View {
+    @State private var selectedLocation: Location = .init(title: "🇷🇺 Russia")
+    @State private var selectedLocationID: String = "🇷🇺 Russia"
+    
+    var body: some View {
+        NavigationStack {
+            Form {
+                TreeSinglePicker("PickerPreview", data: locationsTree, id: \.id, children: \.children, selection: $selectedLocation) { location in
+                    Text(location.id)
+                }
+                
+                Text(selectedLocation.title)
             }
         }
     }

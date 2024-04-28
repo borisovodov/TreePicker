@@ -45,7 +45,61 @@ import SwiftUI
     
     /// The content and behavior of the view.
     @MainActor public var body: some View {
-        Text("Hello World!")
+        NavigationLink {
+            OutlineGroup(self.data, id: self.dataID, children: self.children) { dataElement in
+                Button(action: { self.select(dataElement) }) {
+                    HStack {
+                        self.selectionIndicator(dataElement)
+                        self.rowContent(dataElement)
+                    }
+                }
+            }
+        } label: {
+            LabeledContent {
+                self.selectedOptions
+            } label: {
+                self.label
+            }
+        }
+    }
+    
+    private var selectedOptions: some View {
+        Text("тут выбранный элемент")
+    }
+    
+    @ViewBuilder private func selectionIndicator(_ dataElement: Data.Element) -> some View {
+        if (self.isSelected(dataElement)) {
+            Label("????", systemImage: "checkmark")
+        } else {
+            EmptyView()
+        }
+    }
+    
+    private func isSelected(_ dataElement: Data.Element) -> Bool {
+        // If selection has same type as `Data.Element` then compare selection and `Data.Element`.
+        if let dataElement = dataElement as? SelectionValue {
+            return dataElement == self.selection.wrappedValue
+        }
+        
+        // If selection has same type as `Data.Element.ID` then compare selection and `Data.Element.ID`.
+        if let dataElementID = dataElement[keyPath: self.dataID] as? SelectionValue {
+            return dataElementID == self.selection.wrappedValue
+        }
+        
+        // Return `false` if selection has different type or dataElement isn't selected.
+        return false
+    }
+    
+    private func select(_ dataElement: Data.Element) {
+        if let dataElement = dataElement as? SelectionValue {
+            self.selection.wrappedValue = dataElement
+            return
+        }
+        
+        if let dataElementID = dataElement[keyPath: self.dataID] as? SelectionValue {
+            self.selection.wrappedValue = dataElementID
+            return
+        }
     }
 }
 

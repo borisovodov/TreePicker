@@ -120,7 +120,7 @@ struct TreeOptionalPickerPreview: View {
     var body: some View {
         NavigationStack {
             Form {
-                TreeOptionalPicker("PickerPreview", data: locationsTree, id: \.id, children: \.children, selection: $selectedLocation) { location in
+                TreeOptionalPicker("Locations", data: locationsTree, id: \.id, children: \.children, selection: $selectedLocation) { location in
                     Text(location.id)
                 }
                 
@@ -137,7 +137,7 @@ struct TreeMultiPickerPreview: View {
     var body: some View {
         NavigationStack {
             Form {
-                TreeMultiPicker("PickerPreview", data: locationsTree, id: \.id, children: \.children, selection: $selectedLocations) { location in
+                TreeMultiPicker("Locations", data: locationsTree, id: \.id, children: \.children, selection: $selectedLocations) { location in
                     Text(location.id)
                 }
                 
@@ -159,11 +159,11 @@ struct TreeSinglePickerPreview: View {
     var body: some View {
         NavigationStack {
             Form {
-                TreeSinglePicker("PickerPreview", data: locationsTree, id: \.id, children: \.children, selection: $selectedLocation) { location in
+                TreeSinglePicker("Locations", data: locationsTree, id: \.id, children: \.children, selection: $selectedLocationID) { location in
                     Text(location.id)
                 }
                 
-                Text(selectedLocation.title)
+                Text(selectedLocationID)
             }
         }
     }

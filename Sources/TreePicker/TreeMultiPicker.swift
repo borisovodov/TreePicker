@@ -11,7 +11,7 @@ import SwiftUI
 
 /// A control for selecting multiple options from a set of hierarchical values.
 @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
-@MainActor public struct TreeMultiPicker<PickerLabel: View, SelectionValue: Hashable, Data: RandomAccessCollection, ID: Hashable, RowContent: View> : View {
+@MainActor public struct TreeMultiPicker<PickerLabel: View, SelectionValue: Hashable, Data: RandomAccessCollection, ID: Hashable, RowContent: View, NilSelectionContent: View> : View {
     
     /// Specifies the method of nodes selecting in tree.
     public enum SelectingMethod {
@@ -46,6 +46,9 @@ import SwiftUI
     /// A view that describes the purpose of selecting an option.
     private var label: PickerLabel
     
+    /// A view that present `nil` selected value.
+    private var nilSelectionContent: NilSelectionContent
+    
     /// The content and behavior of the view.
     @MainActor public var body: some View {
         NavigationLink {
@@ -73,6 +76,7 @@ import SwiftUI
     @ViewBuilder private func selectionIndicator(_ dataElement: Data.Element) -> some View {
         if (self.isSelected(dataElement)) {
             Label("????", systemImage: "checkmark")
+                .labelStyle(.iconOnly)
         } else {
             EmptyView()
         }
@@ -121,35 +125,74 @@ import SwiftUI
 extension TreeMultiPicker where Data.Element: Identifiable, ID == Data.Element.ID {
     
     /// Creates a hierarchical picker that computes its options on demand from an underlying collection of identifiable data, optionally allowing users to select multiple elements. Picker generates its label from a localized string key.
-    @MainActor public init(_ titleKey: LocalizedStringKey, data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where PickerLabel == Text {
+    @MainActor public init(_ titleKey: LocalizedStringKey, data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where PickerLabel == Text, NilSelectionContent == Text {
         self.data = data
         self.dataID = \.id
         self.children = children
         self.selection = selection
         self.selectingMethod = selectingMethod
         self.rowContent = rowContent
+        self.nilSelectionContent = Text(SupportingVariables.nilSelectionDefaultTitle)
+        self.label = Text(titleKey)
+    }
+    
+    /// Creates a hierarchical picker that computes its options on demand from an underlying collection of identifiable data, optionally allowing users to select multiple elements. Picker generates its label from a localized string key and displays a custom empty selection view.
+    @MainActor public init(_ titleKey: LocalizedStringKey, data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder nilSelectionContent: () -> NilSelectionContent) where PickerLabel == Text {
+        self.data = data
+        self.dataID = \.id
+        self.children = children
+        self.selection = selection
+        self.selectingMethod = selectingMethod
+        self.rowContent = rowContent
+        self.nilSelectionContent = nilSelectionContent()
         self.label = Text(titleKey)
     }
     
     /// Creates a hierarchical picker that computes its options on demand from an underlying collection of identifiable data, optionally allowing users to select multiple elements. Picker generates its label from a string.
-    @MainActor public init<S>(_ title: S, data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where S: StringProtocol, PickerLabel == Text {
+    @MainActor public init<S>(_ title: S, data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where S: StringProtocol, PickerLabel == Text, NilSelectionContent == Text {
         self.data = data
         self.dataID = \.id
         self.children = children
         self.selection = selection
         self.selectingMethod = selectingMethod
         self.rowContent = rowContent
+        self.nilSelectionContent = Text(SupportingVariables.nilSelectionDefaultTitle)
+        self.label = Text(title)
+    }
+    
+    /// Creates a hierarchical picker that computes its options on demand from an underlying collection of identifiable data, optionally allowing users to select multiple elements. Picker generates its label from a string and displays a custom empty selection view.
+    @MainActor public init<S>(_ title: S, data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder nilSelectionContent: () -> NilSelectionContent) where S: StringProtocol, PickerLabel == Text {
+        self.data = data
+        self.dataID = \.id
+        self.children = children
+        self.selection = selection
+        self.selectingMethod = selectingMethod
+        self.rowContent = rowContent
+        self.nilSelectionContent = nilSelectionContent()
         self.label = Text(title)
     }
     
     /// Creates a hierarchical picker that computes its options on demand from an underlying collection of identifiable data, optionally allowing users to select multiple elements. Picker displays a custom label.
-    @MainActor public init(data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder label: () -> PickerLabel) {
+    @MainActor public init(data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder label: () -> PickerLabel) where NilSelectionContent == Text {
         self.data = data
         self.dataID = \.id
         self.children = children
         self.selection = selection
         self.selectingMethod = selectingMethod
         self.rowContent = rowContent
+        self.nilSelectionContent = Text(SupportingVariables.nilSelectionDefaultTitle)
+        self.label = label()
+    }
+    
+    /// Creates a hierarchical picker that computes its options on demand from an underlying collection of identifiable data, optionally allowing users to select multiple elements. Picker displays a custom label and a custom empty selection view.
+    @MainActor public init(data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder label: () -> PickerLabel, @ViewBuilder nilSelectionContent: () -> NilSelectionContent) {
+        self.data = data
+        self.dataID = \.id
+        self.children = children
+        self.selection = selection
+        self.selectingMethod = selectingMethod
+        self.rowContent = rowContent
+        self.nilSelectionContent = nilSelectionContent()
         self.label = label()
     }
 }
@@ -157,35 +200,74 @@ extension TreeMultiPicker where Data.Element: Identifiable, ID == Data.Element.I
 extension TreeMultiPicker {
     
     /// Creates a hierarchical picker that identifies its options based on a key path to the identifier of the underlying data, optionally allowing users to select multiple elements. Picker generates its label from a localized string key.
-    @MainActor public init(_ titleKey: LocalizedStringKey, data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where PickerLabel == Text {
+    @MainActor public init(_ titleKey: LocalizedStringKey, data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where PickerLabel == Text, NilSelectionContent == Text {
         self.data = data
         self.dataID = id
         self.children = children
         self.selection = selection
         self.selectingMethod = selectingMethod
         self.rowContent = rowContent
+        self.nilSelectionContent = Text(SupportingVariables.nilSelectionDefaultTitle)
+        self.label = Text(titleKey)
+    }
+    
+    /// Creates a hierarchical picker that identifies its options based on a key path to the identifier of the underlying data, optionally allowing users to select multiple elements. Picker generates its label from a localized string key and displays a custom empty selection view.
+    @MainActor public init(_ titleKey: LocalizedStringKey, data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder nilSelectionContent: () -> NilSelectionContent) where PickerLabel == Text {
+        self.data = data
+        self.dataID = id
+        self.children = children
+        self.selection = selection
+        self.selectingMethod = selectingMethod
+        self.rowContent = rowContent
+        self.nilSelectionContent = nilSelectionContent()
         self.label = Text(titleKey)
     }
     
     /// Creates a hierarchical picker that identifies its options based on a key path to the identifier of the underlying data, optionally allowing users to select multiple elements. Picker generates its label from a string.
-    @MainActor public init<S>(_ title: S, data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where S: StringProtocol, PickerLabel == Text {
+    @MainActor public init<S>(_ title: S, data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where S: StringProtocol, PickerLabel == Text, NilSelectionContent == Text {
         self.data = data
         self.dataID = id
         self.children = children
         self.selection = selection
         self.selectingMethod = selectingMethod
         self.rowContent = rowContent
+        self.nilSelectionContent = Text(SupportingVariables.nilSelectionDefaultTitle)
+        self.label = Text(title)
+    }
+    
+    /// Creates a hierarchical picker that identifies its options based on a key path to the identifier of the underlying data, optionally allowing users to select multiple elements. Picker generates its label from a string and displays a custom empty selection view.
+    @MainActor public init<S>(_ title: S, data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder nilSelectionContent: () -> NilSelectionContent) where S: StringProtocol, PickerLabel == Text {
+        self.data = data
+        self.dataID = id
+        self.children = children
+        self.selection = selection
+        self.selectingMethod = selectingMethod
+        self.rowContent = rowContent
+        self.nilSelectionContent = nilSelectionContent()
         self.label = Text(title)
     }
     
     /// Creates a hierarchical picker that identifies its options based on a key path to the identifier of the underlying data, optionally allowing users to select multiple elements. Picker displays a custom label.
-    @MainActor public init(data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder label: () -> PickerLabel) {
+    @MainActor public init(data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder label: () -> PickerLabel) where NilSelectionContent == Text {
         self.data = data
         self.dataID = id
         self.children = children
         self.selection = selection
         self.selectingMethod = selectingMethod
         self.rowContent = rowContent
+        self.nilSelectionContent = Text(SupportingVariables.nilSelectionDefaultTitle)
+        self.label = label()
+    }
+    
+    /// Creates a hierarchical picker that identifies its options based on a key path to the identifier of the underlying data, optionally allowing users to select multiple elements. Picker displays a custom label and a custom empty selection view.
+    @MainActor public init(data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder label: () -> PickerLabel, @ViewBuilder nilSelectionContent: () -> NilSelectionContent) {
+        self.data = data
+        self.dataID = id
+        self.children = children
+        self.selection = selection
+        self.selectingMethod = selectingMethod
+        self.rowContent = rowContent
+        self.nilSelectionContent = nilSelectionContent()
         self.label = label()
     }
 }

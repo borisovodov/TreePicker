@@ -1,7 +1,7 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "nilRowDefaultTitle" : {
+    "nilSelectionDefaultTitle" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {

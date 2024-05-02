@@ -56,20 +56,46 @@ import SwiftUI
             }
         } label: {
             LabeledContent {
-                self.selectedOptions
+                self.selectedOption
             } label: {
                 self.label
             }
         }
     }
     
-    private var selectedOptions: some View {
-        Text("тут выбранный элемент")
+    @ViewBuilder private var selectedOption: some View {
+        if let dataElement = self.dataElement {
+            self.rowContent(dataElement)
+            
+        } else {
+            EmptyView()
+        }
+    }
+    
+    private var dataElement: Data.Element? {
+        if SelectionValue.self == Data.Element.self {
+            return self.selection.wrappedValue as? Data.Element
+        }
+        
+        if SelectionValue.self == ID.self {
+            // https://stackoverflow.com/questions/32301336/swift-recursively-cycle-through-all-subviews-to-find-a-specific-class-and-appen
+            #warning("Не работает выбор города при текстовом селекте. Выбор страны работает, а города нет. Видимо проблема во вложенном поиске.")
+//            _ = self.data.filter { dataElement in
+//                return dataElement[keyPath: self.dataID] as? SelectionValue == self.selection.wrappedValue
+//            }
+            
+            return self.data.first(where: { dataElement in
+                return dataElement[keyPath: self.dataID] as? SelectionValue == self.selection.wrappedValue
+            })
+        }
+        
+        return nil
     }
     
     @ViewBuilder private func selectionIndicator(_ dataElement: Data.Element) -> some View {
         if (self.isSelected(dataElement)) {
             Label("????", systemImage: "checkmark")
+                .labelStyle(.iconOnly)
         } else {
             EmptyView()
         }

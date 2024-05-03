@@ -8,6 +8,7 @@
 import Foundation
 import SwiftUI
 
+
 internal struct SupportingVariables {
     /// Default title for `nil` row view.
     static let nilSelectionDefaultTitle: LocalizedStringKey = "nilSelectionDefaultTitle"

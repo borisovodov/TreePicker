@@ -132,7 +132,7 @@ extension TreeMultiPicker where Data.Element: Identifiable, ID == Data.Element.I
         self.selection = selection
         self.selectingMethod = selectingMethod
         self.rowContent = rowContent
-        self.nilSelectionContent = Text(SupportingVariables.nilSelectionDefaultTitle)
+        self.nilSelectionContent = Text(SupportingVariables.nilSelectionDefaultTitle, bundle: .module)
         self.label = Text(titleKey)
     }
     
@@ -156,7 +156,7 @@ extension TreeMultiPicker where Data.Element: Identifiable, ID == Data.Element.I
         self.selection = selection
         self.selectingMethod = selectingMethod
         self.rowContent = rowContent
-        self.nilSelectionContent = Text(SupportingVariables.nilSelectionDefaultTitle)
+        self.nilSelectionContent = Text(SupportingVariables.nilSelectionDefaultTitle, bundle: .module)
         self.label = Text(title)
     }
     
@@ -180,7 +180,7 @@ extension TreeMultiPicker where Data.Element: Identifiable, ID == Data.Element.I
         self.selection = selection
         self.selectingMethod = selectingMethod
         self.rowContent = rowContent
-        self.nilSelectionContent = Text(SupportingVariables.nilSelectionDefaultTitle)
+        self.nilSelectionContent = Text(SupportingVariables.nilSelectionDefaultTitle, bundle: .module)
         self.label = label()
     }
     
@@ -207,7 +207,7 @@ extension TreeMultiPicker {
         self.selection = selection
         self.selectingMethod = selectingMethod
         self.rowContent = rowContent
-        self.nilSelectionContent = Text(SupportingVariables.nilSelectionDefaultTitle)
+        self.nilSelectionContent = Text(SupportingVariables.nilSelectionDefaultTitle, bundle: .module)
         self.label = Text(titleKey)
     }
     
@@ -231,7 +231,7 @@ extension TreeMultiPicker {
         self.selection = selection
         self.selectingMethod = selectingMethod
         self.rowContent = rowContent
-        self.nilSelectionContent = Text(SupportingVariables.nilSelectionDefaultTitle)
+        self.nilSelectionContent = Text(SupportingVariables.nilSelectionDefaultTitle, bundle: .module)
         self.label = Text(title)
     }
     
@@ -255,7 +255,7 @@ extension TreeMultiPicker {
         self.selection = selection
         self.selectingMethod = selectingMethod
         self.rowContent = rowContent
-        self.nilSelectionContent = Text(SupportingVariables.nilSelectionDefaultTitle)
+        self.nilSelectionContent = Text(SupportingVariables.nilSelectionDefaultTitle, bundle: .module)
         self.label = label()
     }
     

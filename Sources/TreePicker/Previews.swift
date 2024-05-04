@@ -120,11 +120,9 @@ struct TreeOptionalPickerPreview: View {
     var body: some View {
         NavigationStack {
             Form {
-                TreeOptionalPicker("Locations", data: locationsTree, id: \.id, children: \.children, selection: $selectedLocation) { location in
+                TreeOptionalPicker("Locations", data: locationsTree, id: \.id, children: \.children, selection: $selectedLocationID) { location in
                     Text(location.id)
                 }
-                
-                Text(selectedLocation?.title ?? "nil")
             }
         }
     }
@@ -162,8 +160,6 @@ struct TreeSinglePickerPreview: View {
                 TreeSinglePicker("Locations", data: locationsTree, id: \.id, children: \.children, selection: $selectedLocation) { location in
                     Text(location.id)
                 }
-                
-                Text(selectedLocation.title)
             }
         }
     }

@@ -67,8 +67,46 @@ import SwiftUI
         }
     }
     
-    private var selectedOptions: some View {
-        Text("тут выбранный элемент")
+    @ViewBuilder private var selectedOptions: some View {
+        if let dataElement = self.selectedDataElement {
+            self.rowContent(dataElement)
+        } else {
+            self.nilSelectionContent
+        }
+    }
+    
+    private var selectedDataElement: Data.Element? {
+        if SelectionValue.self == Data.Element.self {
+            return self.selection.wrappedValue as? Data.Element
+        }
+        
+        if SelectionValue.self == ID.self {
+            for dataElement in self.data {
+                if let findedDataElement = self.recursivelyFindDataElementByID(parent: dataElement) {
+                    return findedDataElement
+                }
+            }
+        }
+        
+        return nil
+    }
+    
+    func recursivelyFindDataElementByID(parent: Data.Element) -> Data.Element? {
+        if parent[keyPath: self.dataID] as? SelectionValue == self.selection.wrappedValue {
+            return parent
+        }
+        
+        guard let children = parent[keyPath: self.children] else {
+            return nil
+        }
+        
+        for child in children {
+            if let findedDataElement = self.recursivelyFindDataElementByID(parent: child) {
+                return findedDataElement
+            }
+        }
+        
+        return nil
     }
     
     @ViewBuilder private func selectionIndicator(_ dataElement: Data.Element) -> some View {
@@ -128,7 +166,7 @@ extension TreeOptionalPicker where Data.Element: Identifiable, ID == Data.Elemen
         self.selection = selection
         self.selectingMethod = selectingMethod
         self.rowContent = rowContent
-        self.nilSelectionContent = Text(SupportingVariables.nilSelectionDefaultTitle)
+        self.nilSelectionContent = Text(SupportingVariables.nilSelectionDefaultTitle, bundle: .module)
         self.label = Text(titleKey)
     }
     
@@ -152,7 +190,7 @@ extension TreeOptionalPicker where Data.Element: Identifiable, ID == Data.Elemen
         self.selection = selection
         self.selectingMethod = selectingMethod
         self.rowContent = rowContent
-        self.nilSelectionContent = Text(SupportingVariables.nilSelectionDefaultTitle)
+        self.nilSelectionContent = Text(SupportingVariables.nilSelectionDefaultTitle, bundle: .module)
         self.label = Text(title)
     }
     
@@ -176,7 +214,7 @@ extension TreeOptionalPicker where Data.Element: Identifiable, ID == Data.Elemen
         self.selection = selection
         self.selectingMethod = selectingMethod
         self.rowContent = rowContent
-        self.nilSelectionContent = Text(SupportingVariables.nilSelectionDefaultTitle)
+        self.nilSelectionContent = Text(SupportingVariables.nilSelectionDefaultTitle, bundle: .module)
         self.label = label()
     }
     
@@ -203,7 +241,7 @@ extension TreeOptionalPicker {
         self.selection = selection
         self.selectingMethod = selectingMethod
         self.rowContent = rowContent
-        self.nilSelectionContent = Text(SupportingVariables.nilSelectionDefaultTitle)
+        self.nilSelectionContent = Text(SupportingVariables.nilSelectionDefaultTitle, bundle: .module)
         self.label = Text(titleKey)
     }
     
@@ -227,7 +265,7 @@ extension TreeOptionalPicker {
         self.selection = selection
         self.selectingMethod = selectingMethod
         self.rowContent = rowContent
-        self.nilSelectionContent = Text(SupportingVariables.nilSelectionDefaultTitle)
+        self.nilSelectionContent = Text(SupportingVariables.nilSelectionDefaultTitle, bundle: .module)
         self.label = Text(title)
     }
     
@@ -251,7 +289,7 @@ extension TreeOptionalPicker {
         self.selection = selection
         self.selectingMethod = selectingMethod
         self.rowContent = rowContent
-        self.nilSelectionContent = Text(SupportingVariables.nilSelectionDefaultTitle)
+        self.nilSelectionContent = Text(SupportingVariables.nilSelectionDefaultTitle, bundle: .module)
         self.label = label()
     }
     

@@ -31,7 +31,11 @@ let locationsTree: [Location] = [
     ]),
     .init(title: "🇩🇪 Germany", children: [
         .init(title: "Berlin", children: nil),
-        .init(title: "Frankfurt", children: nil),
+        .init(title: "Hesse", children: [
+            .init(title: "Frankfurt", children: nil),
+            .init(title: "Darmstadt", children: nil),
+            .init(title: "Kassel", children: nil),
+        ]),
         .init(title: "Hamburg", children: nil)
     ]),
     .init(title: "🇷🇺 Russia", children: nil)
@@ -138,13 +142,6 @@ struct TreeMultiPickerPreview: View {
                 TreeMultiPicker("Locations", data: locationsTree, id: \.id, children: \.children, selection: $selectedLocations) { location in
                     Text(location.id)
                 }
-                
-                ForEach(Array(selectedLocations), id: \.id) { location in
-                    Text(location.title)
-                }
-//                ForEach(Array(selectedLocationsID), id: \.self) { location in
-//                    Text(location)
-//                }
             }
         }
     }

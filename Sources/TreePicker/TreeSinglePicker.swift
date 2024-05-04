@@ -76,8 +76,8 @@ import SwiftUI
         
         if SelectionValue.self == ID.self {
             for dataElement in self.data {
-                if let findedDataElement = self.recursivelyFindDataElementByID(parent: dataElement) {
-                    return findedDataElement
+                if let selectedDataElement = self.recursivelyFindSelectedDataElement(from: dataElement) {
+                    return selectedDataElement
                 }
             }
         }
@@ -85,7 +85,7 @@ import SwiftUI
         return nil
     }
     
-    func recursivelyFindDataElementByID(parent: Data.Element) -> Data.Element? {
+    private func recursivelyFindSelectedDataElement(from parent: Data.Element) -> Data.Element? {
         if parent[keyPath: self.dataID] as? SelectionValue == self.selection.wrappedValue {
             return parent
         }
@@ -95,8 +95,8 @@ import SwiftUI
         }
         
         for child in children {
-            if let findedDataElement = self.recursivelyFindDataElementByID(parent: child) {
-                return findedDataElement
+            if let selectedDataElement = self.recursivelyFindSelectedDataElement(from: child) {
+                return selectedDataElement
             }
         }
         
@@ -104,11 +104,9 @@ import SwiftUI
     }
     
     @ViewBuilder private func selectionIndicator(_ dataElement: Data.Element) -> some View {
-        if (self.isSelected(dataElement)) {
+        if self.isSelected(dataElement) {
             Label("????", systemImage: "checkmark")
                 .labelStyle(.iconOnly)
-        } else {
-            EmptyView()
         }
     }
     

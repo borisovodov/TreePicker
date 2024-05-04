@@ -69,16 +69,62 @@ import SwiftUI
         }
     }
     
-    private var selectedOptions: some View {
-        Text("тут выбранный элемент")
+    @ViewBuilder private var selectedOptions: some View {
+        if self.selectedDataElements.isEmpty {
+            self.nilSelectionContent
+        } else {
+            VStack {
+                ForEach(self.selectedDataElements, id: self.dataID) { dataElement in
+                    self.rowContent(dataElement)
+                }
+            }
+        }
+    }
+    
+    private var selectedDataElements: [Data.Element] {
+        var selection: [Data.Element] = []
+        
+        if SelectionValue.self == Data.Element.self {
+            for selectedValue in self.selection.wrappedValue {
+                if let selectedValue = selectedValue as? Data.Element {
+                    selection.append(selectedValue)
+                }
+            }
+            
+            return selection
+        }
+        
+        if SelectionValue.self == ID.self {
+            for dataElement in self.data {
+                self.recursivelyFindSelectedDataElement(from: dataElement, selection: &selection)
+            }
+            
+            return selection
+        }
+        
+        return selection
+    }
+    
+    private func recursivelyFindSelectedDataElement(from parent: Data.Element, selection: inout [Data.Element]) {
+        for selectedValue in self.selection.wrappedValue {
+            if parent[keyPath: self.dataID] as? SelectionValue == selectedValue {
+                selection.append(parent)
+            }
+        }
+        
+        guard let children = parent[keyPath: self.children] else {
+            return
+        }
+        
+        for child in children {
+            self.recursivelyFindSelectedDataElement(from: child, selection: &selection)
+        }
     }
     
     @ViewBuilder private func selectionIndicator(_ dataElement: Data.Element) -> some View {
-        if (self.isSelected(dataElement)) {
+        if self.isSelected(dataElement) {
             Label("????", systemImage: "checkmark")
                 .labelStyle(.iconOnly)
-        } else {
-            EmptyView()
         }
     }
     

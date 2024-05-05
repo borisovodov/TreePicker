@@ -8,10 +8,9 @@
 import Foundation
 import SwiftUI
 
-
 /// A control for selecting multiple options from a set of hierarchical values.
 @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
-@MainActor public struct TreeMultiPicker<PickerLabel: View, SelectionValue: Hashable, Data: RandomAccessCollection, ID: Hashable, RowContent: View, NilSelectionContent: View> : View {
+@MainActor public struct TreeMultiPicker<Label: View, SelectionValue: Hashable, Data: RandomAccessCollection, ID: Hashable, RowContent: View, NilSelectionContent: View> : View {
     
     /// Specifies the method of nodes selecting in tree.
     public enum SelectingMethod {
@@ -44,7 +43,7 @@ import SwiftUI
     private var rowContent: (Data.Element) -> RowContent
     
     /// A view that describes the purpose of selecting an option.
-    private var label: PickerLabel
+    private var label: Label
     
     /// A view that present `nil` selected value.
     private var nilSelectionContent: NilSelectionContent
@@ -93,7 +92,13 @@ import SwiftUI
         
         if SelectionValue.self == ID.self {
             for dataElement in self.data {
-                self.recursivelyFindSelectedDataElement(from: dataElement, selection: &selection)
+                self.recursivelyHandleDataElementAndChildren(from: dataElement) { dataElement in
+                    for selectedValue in self.selection.wrappedValue {
+                        if dataElement[keyPath: self.dataID] as? SelectionValue == selectedValue {
+                            selection.append(dataElement)
+                        }
+                    }
+                }
             }
             
             return selection
@@ -103,37 +108,57 @@ import SwiftUI
     }
     
     @ViewBuilder private func outlineGroupRow(_ dataElement: Data.Element) -> some View {
-        Button(action: { self.select(dataElement) }) {
-            HStack {
-                self.selectionIndicator(dataElement)
-                self.rowContent(dataElement)
-                Spacer()
-            }
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-    }
-    
-    @ViewBuilder private func selectionIndicator(_ dataElement: Data.Element) -> some View {
-        if self.isSelected(dataElement) {
-            Label("????", systemImage: "checkmark")
-                .labelStyle(.iconOnly)
+        if self.isSelectable(dataElement) {
+            self.selectableRow(dataElement)
+        } else {
+            self.rowContent(dataElement)
         }
     }
     
-    private func recursivelyFindSelectedDataElement(from parent: Data.Element, selection: inout [Data.Element]) {
-        for selectedValue in self.selection.wrappedValue {
-            if parent[keyPath: self.dataID] as? SelectionValue == selectedValue {
-                selection.append(parent)
+    @ViewBuilder private func selectableRow(_ dataElement: Data.Element) -> some View {
+        HStack {
+            if self.isSelected(dataElement) {
+                Image(systemName: "checkmark")
+                    .foregroundStyle(Color.accentColor)
             }
+            
+            Button(action: { self.select(dataElement) }) {
+                HStack {
+                    self.rowContent(dataElement)
+                    Spacer()
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
         }
+    }
+    
+    private func recursivelyHandleDataElementAndChildren(from parent: Data.Element, action: (Data.Element) -> Void) {
+        action(parent)
         
         guard let children = parent[keyPath: self.children] else {
             return
         }
         
         for child in children {
-            self.recursivelyFindSelectedDataElement(from: child, selection: &selection)
+            self.recursivelyHandleDataElementAndChildren(from: child) { child in
+                action(child)
+            }
+        }
+    }
+    
+    private func isSelectable(_ dataElement: Data.Element) -> Bool {
+        switch self.selectingMethod {
+        case .leafNodes:
+            if dataElement[keyPath: self.children] == nil {
+                return true
+            } else {
+                return false
+            }
+        case .independent:
+            return true
+        case .cascading:
+            return true
         }
     }
     
@@ -154,25 +179,47 @@ import SwiftUI
     
     private func select(_ dataElement: Data.Element) {
         if self.isSelected(dataElement) {
-            if let dataElement = dataElement as? SelectionValue {
-                self.selection.wrappedValue.remove(dataElement)
-                return
-            }
-            
-            if let dataElementID = dataElement[keyPath: self.dataID] as? SelectionValue {
-                self.selection.wrappedValue.remove(dataElementID)
-                return
+            switch self.selectingMethod {
+            case .cascading:
+                self.recursivelyHandleDataElementAndChildren(from: dataElement) { dataElement in
+                    self.removeSelection(dataElement)
+                }
+            default:
+                self.removeSelection(dataElement)
             }
         } else {
-            if let dataElement = dataElement as? SelectionValue {
-                self.selection.wrappedValue.insert(dataElement)
-                return
+            switch self.selectingMethod {
+            case .cascading:
+                self.recursivelyHandleDataElementAndChildren(from: dataElement) { dataElement in
+                    self.insertSelection(dataElement)
+                }
+            default:
+                self.insertSelection(dataElement)
             }
-            
-            if let dataElementID = dataElement[keyPath: self.dataID] as? SelectionValue {
-                self.selection.wrappedValue.insert(dataElementID)
-                return
-            }
+        }
+    }
+    
+    private func removeSelection(_ dataElement: Data.Element) {
+        if let dataElement = dataElement as? SelectionValue {
+            self.selection.wrappedValue.remove(dataElement)
+            return
+        }
+        
+        if let dataElementID = dataElement[keyPath: self.dataID] as? SelectionValue {
+            self.selection.wrappedValue.remove(dataElementID)
+            return
+        }
+    }
+    
+    private func insertSelection(_ dataElement: Data.Element) {
+        if let dataElement = dataElement as? SelectionValue {
+            self.selection.wrappedValue.insert(dataElement)
+            return
+        }
+        
+        if let dataElementID = dataElement[keyPath: self.dataID] as? SelectionValue {
+            self.selection.wrappedValue.insert(dataElementID)
+            return
         }
     }
 }
@@ -180,7 +227,7 @@ import SwiftUI
 extension TreeMultiPicker where Data.Element: Identifiable, ID == Data.Element.ID {
     
     /// Creates a hierarchical picker that computes its options on demand from an underlying collection of identifiable data, optionally allowing users to select multiple elements. Picker generates its label from a localized string key.
-    @MainActor public init(_ titleKey: LocalizedStringKey, data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where PickerLabel == Text, NilSelectionContent == Text {
+    @MainActor public init(_ titleKey: LocalizedStringKey, data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Label == Text, NilSelectionContent == Text {
         self.data = data
         self.dataID = \.id
         self.children = children
@@ -192,7 +239,7 @@ extension TreeMultiPicker where Data.Element: Identifiable, ID == Data.Element.I
     }
     
     /// Creates a hierarchical picker that computes its options on demand from an underlying collection of identifiable data, optionally allowing users to select multiple elements. Picker generates its label from a localized string key and displays a custom empty selection view.
-    @MainActor public init(_ titleKey: LocalizedStringKey, data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder nilSelectionContent: () -> NilSelectionContent) where PickerLabel == Text {
+    @MainActor public init(_ titleKey: LocalizedStringKey, data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder nilSelectionContent: () -> NilSelectionContent) where Label == Text {
         self.data = data
         self.dataID = \.id
         self.children = children
@@ -204,7 +251,7 @@ extension TreeMultiPicker where Data.Element: Identifiable, ID == Data.Element.I
     }
     
     /// Creates a hierarchical picker that computes its options on demand from an underlying collection of identifiable data, optionally allowing users to select multiple elements. Picker generates its label from a string.
-    @MainActor public init<S>(_ title: S, data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where S: StringProtocol, PickerLabel == Text, NilSelectionContent == Text {
+    @MainActor public init<S>(_ title: S, data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where S: StringProtocol, Label == Text, NilSelectionContent == Text {
         self.data = data
         self.dataID = \.id
         self.children = children
@@ -216,7 +263,7 @@ extension TreeMultiPicker where Data.Element: Identifiable, ID == Data.Element.I
     }
     
     /// Creates a hierarchical picker that computes its options on demand from an underlying collection of identifiable data, optionally allowing users to select multiple elements. Picker generates its label from a string and displays a custom empty selection view.
-    @MainActor public init<S>(_ title: S, data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder nilSelectionContent: () -> NilSelectionContent) where S: StringProtocol, PickerLabel == Text {
+    @MainActor public init<S>(_ title: S, data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder nilSelectionContent: () -> NilSelectionContent) where S: StringProtocol, Label == Text {
         self.data = data
         self.dataID = \.id
         self.children = children
@@ -228,7 +275,7 @@ extension TreeMultiPicker where Data.Element: Identifiable, ID == Data.Element.I
     }
     
     /// Creates a hierarchical picker that computes its options on demand from an underlying collection of identifiable data, optionally allowing users to select multiple elements. Picker displays a custom label.
-    @MainActor public init(data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder label: () -> PickerLabel) where NilSelectionContent == Text {
+    @MainActor public init(data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder label: () -> Label) where NilSelectionContent == Text {
         self.data = data
         self.dataID = \.id
         self.children = children
@@ -240,7 +287,7 @@ extension TreeMultiPicker where Data.Element: Identifiable, ID == Data.Element.I
     }
     
     /// Creates a hierarchical picker that computes its options on demand from an underlying collection of identifiable data, optionally allowing users to select multiple elements. Picker displays a custom label and a custom empty selection view.
-    @MainActor public init(data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder label: () -> PickerLabel, @ViewBuilder nilSelectionContent: () -> NilSelectionContent) {
+    @MainActor public init(data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder label: () -> Label, @ViewBuilder nilSelectionContent: () -> NilSelectionContent) {
         self.data = data
         self.dataID = \.id
         self.children = children
@@ -255,7 +302,7 @@ extension TreeMultiPicker where Data.Element: Identifiable, ID == Data.Element.I
 extension TreeMultiPicker {
     
     /// Creates a hierarchical picker that identifies its options based on a key path to the identifier of the underlying data, optionally allowing users to select multiple elements. Picker generates its label from a localized string key.
-    @MainActor public init(_ titleKey: LocalizedStringKey, data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where PickerLabel == Text, NilSelectionContent == Text {
+    @MainActor public init(_ titleKey: LocalizedStringKey, data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Label == Text, NilSelectionContent == Text {
         self.data = data
         self.dataID = id
         self.children = children
@@ -267,7 +314,7 @@ extension TreeMultiPicker {
     }
     
     /// Creates a hierarchical picker that identifies its options based on a key path to the identifier of the underlying data, optionally allowing users to select multiple elements. Picker generates its label from a localized string key and displays a custom empty selection view.
-    @MainActor public init(_ titleKey: LocalizedStringKey, data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder nilSelectionContent: () -> NilSelectionContent) where PickerLabel == Text {
+    @MainActor public init(_ titleKey: LocalizedStringKey, data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder nilSelectionContent: () -> NilSelectionContent) where Label == Text {
         self.data = data
         self.dataID = id
         self.children = children
@@ -279,7 +326,7 @@ extension TreeMultiPicker {
     }
     
     /// Creates a hierarchical picker that identifies its options based on a key path to the identifier of the underlying data, optionally allowing users to select multiple elements. Picker generates its label from a string.
-    @MainActor public init<S>(_ title: S, data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where S: StringProtocol, PickerLabel == Text, NilSelectionContent == Text {
+    @MainActor public init<S>(_ title: S, data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where S: StringProtocol, Label == Text, NilSelectionContent == Text {
         self.data = data
         self.dataID = id
         self.children = children
@@ -291,7 +338,7 @@ extension TreeMultiPicker {
     }
     
     /// Creates a hierarchical picker that identifies its options based on a key path to the identifier of the underlying data, optionally allowing users to select multiple elements. Picker generates its label from a string and displays a custom empty selection view.
-    @MainActor public init<S>(_ title: S, data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder nilSelectionContent: () -> NilSelectionContent) where S: StringProtocol, PickerLabel == Text {
+    @MainActor public init<S>(_ title: S, data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder nilSelectionContent: () -> NilSelectionContent) where S: StringProtocol, Label == Text {
         self.data = data
         self.dataID = id
         self.children = children
@@ -303,7 +350,7 @@ extension TreeMultiPicker {
     }
     
     /// Creates a hierarchical picker that identifies its options based on a key path to the identifier of the underlying data, optionally allowing users to select multiple elements. Picker displays a custom label.
-    @MainActor public init(data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder label: () -> PickerLabel) where NilSelectionContent == Text {
+    @MainActor public init(data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder label: () -> Label) where NilSelectionContent == Text {
         self.data = data
         self.dataID = id
         self.children = children
@@ -315,7 +362,7 @@ extension TreeMultiPicker {
     }
     
     /// Creates a hierarchical picker that identifies its options based on a key path to the identifier of the underlying data, optionally allowing users to select multiple elements. Picker displays a custom label and a custom empty selection view.
-    @MainActor public init(data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder label: () -> PickerLabel, @ViewBuilder nilSelectionContent: () -> NilSelectionContent) {
+    @MainActor public init(data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder label: () -> Label, @ViewBuilder nilSelectionContent: () -> NilSelectionContent) {
         self.data = data
         self.dataID = id
         self.children = children

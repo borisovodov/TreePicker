@@ -139,7 +139,7 @@ struct TreeMultiPickerPreview: View {
     var body: some View {
         NavigationStack {
             Form {
-                TreeMultiPicker("Locations", data: locationsTree, id: \.id, children: \.children, selection: $selectedLocations) { location in
+                TreeMultiPicker("Locations", data: locationsTree, id: \.id, children: \.children, selection: $selectedLocations, selectingMethod: .cascading) { location in
                     Text(location.id)
                 }
             }

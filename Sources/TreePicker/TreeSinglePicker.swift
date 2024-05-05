@@ -8,10 +8,9 @@
 import Foundation
 import SwiftUI
 
-
 /// A control for selecting exactly one option from a set of hierarchical values.
 @available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
-@MainActor public struct TreeSinglePicker<PickerLabel: View, SelectionValue: Hashable, Data: RandomAccessCollection, ID: Hashable, RowContent: View> : View {
+@MainActor public struct TreeSinglePicker<Label: View, SelectionValue: Hashable, Data: RandomAccessCollection, ID: Hashable, RowContent: View> : View {
     
     /// Specifies the method of nodes selecting in tree.
     public enum SelectingMethod {
@@ -41,7 +40,7 @@ import SwiftUI
     private var rowContent: (Data.Element) -> RowContent
     
     /// A view that describes the purpose of selecting an option.
-    private var label: PickerLabel
+    private var label: Label
     
     /// The content and behavior of the view.
     @MainActor public var body: some View {
@@ -83,21 +82,28 @@ import SwiftUI
     }
     
     @ViewBuilder private func outlineGroupRow(_ dataElement: Data.Element) -> some View {
-        Button(action: { self.select(dataElement) }) {
-            HStack {
-                self.selectionIndicator(dataElement)
-                self.rowContent(dataElement)
-                Spacer()
-            }
-            .contentShape(Rectangle())
+        if self.isSelectable(dataElement) {
+            self.selectableRow(dataElement)
+        } else {
+            self.rowContent(dataElement)
         }
-        .buttonStyle(.plain)
     }
     
-    @ViewBuilder private func selectionIndicator(_ dataElement: Data.Element) -> some View {
-        if self.isSelected(dataElement) {
-            Label("????", systemImage: "checkmark")
-                .labelStyle(.iconOnly)
+    @ViewBuilder private func selectableRow(_ dataElement: Data.Element) -> some View {
+        HStack {
+            if self.isSelected(dataElement) {
+                Image(systemName: "checkmark")
+                    .foregroundStyle(Color.accentColor)
+            }
+            
+            Button(action: { self.select(dataElement) }) {
+                HStack {
+                    self.rowContent(dataElement)
+                    Spacer()
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
         }
     }
     
@@ -117,6 +123,19 @@ import SwiftUI
         }
         
         return nil
+    }
+    
+    private func isSelectable(_ dataElement: Data.Element) -> Bool {
+        switch self.selectingMethod {
+        case .leafNodes:
+            if dataElement[keyPath: self.children] == nil {
+                return true
+            } else {
+                return false
+            }
+        case .nodes:
+            return true
+        }
     }
     
     private func isSelected(_ dataElement: Data.Element) -> Bool {
@@ -150,7 +169,7 @@ import SwiftUI
 extension TreeSinglePicker where Data.Element: Identifiable, ID == Data.Element.ID {
     
     /// Creates a hierarchical picker that computes its options on demand from an underlying collection of identifiable data and allowing users to have exactly one option always selected. Picker generates its label from a localized string key.
-    @MainActor public init(_ titleKey: LocalizedStringKey, data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where PickerLabel == Text {
+    @MainActor public init(_ titleKey: LocalizedStringKey, data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Label == Text {
         self.data = data
         self.dataID = \.id
         self.children = children
@@ -161,7 +180,7 @@ extension TreeSinglePicker where Data.Element: Identifiable, ID == Data.Element.
     }
     
     /// Creates a hierarchical picker that computes its options on demand from an underlying collection of identifiable data and allowing users to have exactly one option always selected. Picker generates its label from a string.
-    @MainActor public init<S>(_ title: S, data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where S: StringProtocol, PickerLabel == Text {
+    @MainActor public init<S>(_ title: S, data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where S: StringProtocol, Label == Text {
         self.data = data
         self.dataID = \.id
         self.children = children
@@ -172,7 +191,7 @@ extension TreeSinglePicker where Data.Element: Identifiable, ID == Data.Element.
     }
     
     /// Creates a hierarchical picker that computes its options on demand from an underlying collection of identifiable data and allowing users to have exactly one option always selected. Picker displays a custom label.
-    @MainActor public init(data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder label: () -> PickerLabel) {
+    @MainActor public init(data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder label: () -> Label) {
         self.data = data
         self.dataID = \.id
         self.children = children
@@ -186,7 +205,7 @@ extension TreeSinglePicker where Data.Element: Identifiable, ID == Data.Element.
 extension TreeSinglePicker {
     
     /// Creates a hierarchical picker that identifies its options based on a key path to the identifier of the underlying data and allowing users to have exactly one option always selected. Picker generates its label from a localized string key.
-    @MainActor public init(_ titleKey: LocalizedStringKey, data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where PickerLabel == Text {
+    @MainActor public init(_ titleKey: LocalizedStringKey, data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Label == Text {
         self.data = data
         self.dataID = id
         self.children = children
@@ -197,7 +216,7 @@ extension TreeSinglePicker {
     }
     
     /// Creates a hierarchical picker that identifies its options based on a key path to the identifier of the underlying data and allowing users to have exactly one option always selected. Picker generates its label from a string.
-    @MainActor public init<S>(_ title: S, data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where S: StringProtocol, PickerLabel == Text {
+    @MainActor public init<S>(_ title: S, data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where S: StringProtocol, Label == Text {
         self.data = data
         self.dataID = id
         self.children = children
@@ -208,7 +227,7 @@ extension TreeSinglePicker {
     }
     
     /// Creates a hierarchical picker that identifies its options based on a key path to the identifier of the underlying data and allowing users to have exactly one option always selected. Picker displays a custom label.
-    @MainActor public init(data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder label: () -> PickerLabel) {
+    @MainActor public init(data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder label: () -> Label) {
         self.data = data
         self.dataID = id
         self.children = children

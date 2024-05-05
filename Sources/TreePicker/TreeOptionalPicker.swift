@@ -50,12 +50,9 @@ import SwiftUI
     /// The content and behavior of the view.
     @MainActor public var body: some View {
         NavigationLink {
-            OutlineGroup(self.data, id: self.dataID, children: self.children) { dataElement in
-                Button(action: { self.select(dataElement) }) {
-                    HStack {
-                        self.selectionIndicator(dataElement)
-                        self.rowContent(dataElement)
-                    }
+            Form {
+                OutlineGroup(self.data, id: self.dataID, children: self.children) { dataElement in
+                    self.outlineGroupRow(dataElement)
                 }
             }
         } label: {
@@ -91,6 +88,25 @@ import SwiftUI
         return nil
     }
     
+    @ViewBuilder private func outlineGroupRow(_ dataElement: Data.Element) -> some View {
+        Button(action: { self.select(dataElement) }) {
+            HStack {
+                self.selectionIndicator(dataElement)
+                self.rowContent(dataElement)
+                Spacer()
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+    
+    @ViewBuilder private func selectionIndicator(_ dataElement: Data.Element) -> some View {
+        if self.isSelected(dataElement) {
+            Label("????", systemImage: "checkmark")
+                .labelStyle(.iconOnly)
+        }
+    }
+    
     private func recursivelyFindSelectedDataElement(from parent: Data.Element) -> Data.Element? {
         if parent[keyPath: self.dataID] as? SelectionValue == self.selection.wrappedValue {
             return parent
@@ -107,13 +123,6 @@ import SwiftUI
         }
         
         return nil
-    }
-    
-    @ViewBuilder private func selectionIndicator(_ dataElement: Data.Element) -> some View {
-        if self.isSelected(dataElement) {
-            Label("????", systemImage: "checkmark")
-                .labelStyle(.iconOnly)
-        }
     }
     
     private func isSelected(_ dataElement: Data.Element) -> Bool {

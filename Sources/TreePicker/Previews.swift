@@ -73,7 +73,7 @@ struct ListPreview: View {
         NavigationStack {
             Form {
                 NavigationLink {
-                    List(locationsTree, id: \.id, children: \.children, selection: $selectedLocation) { selectedDataElement in
+                    List(locationsTree, id: \.id, children: \.children, selection: $selectedLocations) { selectedDataElement in
                         HStack {
                             Text(selectedDataElement.title)
                         }
@@ -81,10 +81,10 @@ struct ListPreview: View {
                     }
                     .toolbar { EditButton() }
                     
-                    Text(selectedLocation?.title ?? "nil")
-//                    ForEach(Array(selectedLocations), id: \.self) { selection in
-//                        Text(selection.title)
-//                    }
+//                    Text(selectedLocation?.title ?? "nil")
+                    ForEach(Array(selectedLocations), id: \.self) { selection in
+                        Text(selection.title)
+                    }
                 } label: {
                     LabeledContent {
                         Text("self.selectedOptions")
@@ -109,7 +109,7 @@ struct PickerPreview: View {
                         Text(location.title)
                     }
                 }
-                .pickerStyle(.navigationLink)
+//                .pickerStyle(.navigationLink)
                 
                 Text(selectedLocationIDSingle)
             }
@@ -118,13 +118,13 @@ struct PickerPreview: View {
 }
 
 struct TreeOptionalPickerPreview: View {
-    @State private var selectedLocation: Location? = .init(title: "🇷🇺 Russia")
-    @State private var selectedLocationID: String? = "🇷🇺 Russia"
+    @State private var selectedLocation: Location? = nil
+    @State private var selectedLocationID: String? = nil
     
     var body: some View {
         NavigationStack {
             Form {
-                TreeOptionalPicker("Locations", data: locationsTree, id: \.id, children: \.children, selection: $selectedLocationID) { location in
+                TreeOptionalPicker("Location", data: locationsTree, id: \.id, children: \.children, selection: $selectedLocationID) { location in
                     Text(location.id)
                 }
             }
@@ -133,8 +133,8 @@ struct TreeOptionalPickerPreview: View {
 }
 
 struct TreeMultiPickerPreview: View {
-    @State private var selectedLocations: Set<Location> = [.init(title: "🇷🇺 Russia")]
-    @State private var selectedLocationsID: Set<String> = ["🇷🇺 Russia"]
+    @State private var selectedLocations: Set<Location> = []
+    @State private var selectedLocationsID: Set<String> = []
     
     var body: some View {
         NavigationStack {
@@ -154,7 +154,7 @@ struct TreeSinglePickerPreview: View {
     var body: some View {
         NavigationStack {
             Form {
-                TreeSinglePicker("Locations", data: locationsTree, id: \.id, children: \.children, selection: $selectedLocation) { location in
+                TreeSinglePicker("Location", data: locationsTree, id: \.id, children: \.children, selection: $selectedLocation) { location in
                     Text(location.id)
                 }
             }

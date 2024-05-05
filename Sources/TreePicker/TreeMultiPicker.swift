@@ -52,12 +52,9 @@ import SwiftUI
     /// The content and behavior of the view.
     @MainActor public var body: some View {
         NavigationLink {
-            OutlineGroup(self.data, id: self.dataID, children: self.children) { dataElement in
-                Button(action: { self.select(dataElement) }) {
-                    HStack {
-                        self.selectionIndicator(dataElement)
-                        self.rowContent(dataElement)
-                    }
+            Form {
+                OutlineGroup(self.data, id: self.dataID, children: self.children) { dataElement in
+                    self.outlineGroupRow(dataElement)
                 }
             }
         } label: {
@@ -105,6 +102,25 @@ import SwiftUI
         return selection
     }
     
+    @ViewBuilder private func outlineGroupRow(_ dataElement: Data.Element) -> some View {
+        Button(action: { self.select(dataElement) }) {
+            HStack {
+                self.selectionIndicator(dataElement)
+                self.rowContent(dataElement)
+                Spacer()
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+    
+    @ViewBuilder private func selectionIndicator(_ dataElement: Data.Element) -> some View {
+        if self.isSelected(dataElement) {
+            Label("????", systemImage: "checkmark")
+                .labelStyle(.iconOnly)
+        }
+    }
+    
     private func recursivelyFindSelectedDataElement(from parent: Data.Element, selection: inout [Data.Element]) {
         for selectedValue in self.selection.wrappedValue {
             if parent[keyPath: self.dataID] as? SelectionValue == selectedValue {
@@ -118,13 +134,6 @@ import SwiftUI
         
         for child in children {
             self.recursivelyFindSelectedDataElement(from: child, selection: &selection)
-        }
-    }
-    
-    @ViewBuilder private func selectionIndicator(_ dataElement: Data.Element) -> some View {
-        if self.isSelected(dataElement) {
-            Label("????", systemImage: "checkmark")
-                .labelStyle(.iconOnly)
         }
     }
     

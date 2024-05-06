@@ -8,16 +8,66 @@
 import Foundation
 import SwiftUI
 
-/// A control for selecting single option from a set of hierarchical values.
-@available(macOS 14.0, iOS 17.0, visionOS 1.0, *)
-@MainActor public struct TreeOptionalPicker<Label: View, SelectionValue: Hashable, Data: RandomAccessCollection, ID: Hashable, RowContent: View, NilSelectionContent: View> : View {
+/// A control for selecting optional value from a set of hierarchical values.
+///
+/// You create a tree picker by providing a tree-structured data, `children` parameter that provides a key path to get the child nodes at any level, selection binding, a label, and a row content. Optionaly you can specify a view that represent empty selection value.
+///
+/// The following example shows how to create a tree picker with the tree of a `Location` type which conforms to `Identifiable` protocol:
+///
+///     struct Location: Hashable, Identifiable {
+///         let id = UUID()
+///         var title: String
+///         var children: [Location]?
+///     }
+///
+///     private let locations: [Location] = [
+///         .init(title: "🇬🇧 United Kingdom", children: [
+///             .init(title: "London", children: nil),
+///             .init(title: "Birmingham", children: nil),
+///             .init(title: "Bristol", children: nil)
+///         ]),
+///         .init(title: "🇫🇷 France", children: [
+///             .init(title: "Paris", children: nil),
+///             .init(title: "Toulouse", children: nil),
+///             .init(title: "Bordeaux", children: nil)
+///         ]),
+///         .init(title: "🇩🇪 Germany", children: [
+///             .init(title: "Berlin", children: nil),
+///             .init(title: "Hesse", children: [
+///                 .init(title: "Frankfurt", children: nil),
+///                 .init(title: "Darmstadt", children: nil),
+///                 .init(title: "Kassel", children: nil),
+///             ]),
+///             .init(title: "Hamburg", children: nil)
+///         ]),
+///         .init(title: "🇷🇺 Russia", children: nil)
+///     ]
+///
+///     @State private var selection: UUID? = nil
+///
+///     var body: some View {
+///         NavigationStack {
+///             Form {
+///                 TreeOptionalPicker("Location", data: locations, children: \.children, selection: $selection) { location in
+///                     Text(location.title)
+///                 }
+///             }
+///         }
+///     }
+///
+/// When selecting a row in a tree, depending on the type of `SelectionValue`, either the object itself became selection value or the value of it's identifier.
+///
+/// ### Selection methods
+/// You can allow all nodes selection or only leaves. For this you need to specify `selectingMethod` parameter. By default parameter equal `leafNodes` value. It means that only node without children will be selectable. If choose `nodes` value, all nodes (include *folders*) will be selectable.
+@available(macOS 13.0, iOS 16.0, visionOS 1.0, *)
+@MainActor public struct TreeOptionalPicker<Label: View, SelectionValue: Hashable, Data: RandomAccessCollection, ID: Hashable, RowContent: View, EmptySelectionContent: View> : View {
     
-    /// Specifies the method of nodes selecting in tree.
-    public enum SelectingMethod {
-        /// Only leaf nodes of the tree are selectable.
+    /// The method of nodes selection.
+    public enum SelectionMethod {
+        /// The method in which only leaf nodes of the tree are selectable.
         case leafNodes
         
-        /// All tree nodes are selectable.
+        /// The method in which all tree nodes are selectable.
         case nodes
     }
     
@@ -31,11 +81,10 @@ import SwiftUI
     private var children: KeyPath<Data.Element, Data?>
     
     /// A binding to a selected value.
-    // TODO: Нужно посмотреть можем ли привязать это всё к одному дереву, чтобы не плодить отдельно single, optional и multi. Binding<Hashable?>.
     private var selection: Binding<SelectionValue?>
     
-    /// The method of nodes selecting in tree.
-    private var selectingMethod: SelectingMethod
+    /// The method of nodes selection in tree.
+    private var selectionMethod: SelectionMethod
     
     /// A view builder that creates the view for a single row in pickers options.
     private var rowContent: (Data.Element) -> RowContent
@@ -44,7 +93,7 @@ import SwiftUI
     private var label: Label
     
     /// A view that present `nil` selected value.
-    private var nilSelectionContent: NilSelectionContent
+    private var emptySelectionContent: EmptySelectionContent
     
     /// The content and behavior of the view.
     @MainActor public var body: some View {
@@ -67,7 +116,7 @@ import SwiftUI
         if let dataElement = self.selectedDataElement {
             self.rowContent(dataElement)
         } else {
-            self.nilSelectionContent
+            self.emptySelectionContent
         }
     }
     
@@ -132,7 +181,7 @@ import SwiftUI
     }
     
     private func isSelectable(_ dataElement: Data.Element) -> Bool {
-        switch self.selectingMethod {
+        switch self.selectionMethod {
         case .leafNodes:
             if dataElement[keyPath: self.children] == nil {
                 return true
@@ -185,74 +234,125 @@ import SwiftUI
 extension TreeOptionalPicker where Data.Element: Identifiable, ID == Data.Element.ID {
     
     /// Creates a hierarchical picker that computes its options on demand from an underlying collection of identifiable data, optionally allowing users to select a single element. Picker generates its label from a localized string key.
-    @MainActor public init(_ titleKey: LocalizedStringKey, data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue?>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Label == Text, NilSelectionContent == Text {
+    /// 
+    /// - Parameters:
+    ///   - titleKey: A localized string key that describes the purpose of selecting an option.
+    ///   - data: The identifiable data for computing options.
+    ///   - children: A key path to a property whose non-`nil` value gives the children of `data`. A non-`nil` but empty value denotes an element capable of having children that's currently childless, such as an empty directory in a file system. On the other hand, if the property at the key path is `nil`, then the outline group treats `data` as a leaf in the tree, like a regular file in a file system.
+    ///   - selection: A binding to a property that determines the currently-selected optional value.
+    ///   - selectionMethod: The method of selecting options.
+    ///   - rowContent: A view builder that creates the view for a single option.
+    @MainActor public init(_ titleKey: LocalizedStringKey, data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue?>, selectionMethod: SelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Label == Text, EmptySelectionContent == Text {
         self.data = data
         self.dataID = \.id
         self.children = children
         self.selection = selection
-        self.selectingMethod = selectingMethod
+        self.selectionMethod = selectionMethod
         self.rowContent = rowContent
-        self.nilSelectionContent = Text(SupportingVariables.nilSelectionDefaultTitle, bundle: .module)
+        self.emptySelectionContent = Text("nilSelectionDefaultTitle", bundle: .module)
         self.label = Text(titleKey)
     }
     
     /// Creates a hierarchical picker that computes its options on demand from an underlying collection of identifiable data, optionally allowing users to select a single element. Picker generates its label from a localized string key and displays a custom empty selection view.
-    @MainActor public init(_ titleKey: LocalizedStringKey, data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue?>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder nilSelectionContent: () -> NilSelectionContent) where Label == Text {
+    /// 
+    /// - Parameters:
+    ///   - titleKey: A localized string key that describes the purpose of selecting an option.
+    ///   - data: The identifiable data for computing options.
+    ///   - children: A key path to a property whose non-`nil` value gives the children of `data`. A non-`nil` but empty value denotes an element capable of having children that's currently childless, such as an empty directory in a file system. On the other hand, if the property at the key path is `nil`, then the outline group treats `data` as a leaf in the tree, like a regular file in a file system.
+    ///   - selection: A binding to a property that determines the currently-selected optional value.
+    ///   - selectionMethod: The method of selecting options.
+    ///   - rowContent: A view builder that creates the view for a single option.
+    ///   - emptySelectionContent: A view that represents the empty selection.
+    @MainActor public init(_ titleKey: LocalizedStringKey, data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue?>, selectionMethod: SelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder emptySelectionContent: () -> EmptySelectionContent) where Label == Text {
         self.data = data
         self.dataID = \.id
         self.children = children
         self.selection = selection
-        self.selectingMethod = selectingMethod
+        self.selectionMethod = selectionMethod
         self.rowContent = rowContent
-        self.nilSelectionContent = nilSelectionContent()
+        self.emptySelectionContent = emptySelectionContent()
         self.label = Text(titleKey)
     }
     
     /// Creates a hierarchical picker that computes its options on demand from an underlying collection of identifiable data, optionally allowing users to select a single element. Picker generates its label from a string.
-    @MainActor public init<S>(_ title: S, data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue?>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where S: StringProtocol, Label == Text, NilSelectionContent == Text {
+    /// 
+    /// - Parameters:
+    ///   - title: A string that describes the purpose of selecting an option.
+    ///   - data: The identifiable data for computing options.
+    ///   - children: A key path to a property whose non-`nil` value gives the children of `data`. A non-`nil` but empty value denotes an element capable of having children that's currently childless, such as an empty directory in a file system. On the other hand, if the property at the key path is `nil`, then the outline group treats `data` as a leaf in the tree, like a regular file in a file system.
+    ///   - selection: A binding to a property that determines the currently-selected optional value.
+    ///   - selectionMethod: The method of selecting options.
+    ///   - rowContent: A view builder that creates the view for a single option.
+    @MainActor public init<S>(_ title: S, data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue?>, selectionMethod: SelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where S: StringProtocol, Label == Text, EmptySelectionContent == Text {
         self.data = data
         self.dataID = \.id
         self.children = children
         self.selection = selection
-        self.selectingMethod = selectingMethod
+        self.selectionMethod = selectionMethod
         self.rowContent = rowContent
-        self.nilSelectionContent = Text(SupportingVariables.nilSelectionDefaultTitle, bundle: .module)
+        self.emptySelectionContent = Text("nilSelectionDefaultTitle", bundle: .module)
         self.label = Text(title)
     }
     
     /// Creates a hierarchical picker that computes its options on demand from an underlying collection of identifiable data, optionally allowing users to select a single element. Picker generates its label from a string and displays a custom empty selection view.
-    @MainActor public init<S>(_ title: S, data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue?>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder nilSelectionContent: () -> NilSelectionContent) where S: StringProtocol, Label == Text {
+    /// 
+    /// - Parameters:
+    ///   - title: A string that describes the purpose of selecting an option.
+    ///   - data: The identifiable data for computing options.
+    ///   - children: A key path to a property whose non-`nil` value gives the children of `data`. A non-`nil` but empty value denotes an element capable of having children that's currently childless, such as an empty directory in a file system. On the other hand, if the property at the key path is `nil`, then the outline group treats `data` as a leaf in the tree, like a regular file in a file system.
+    ///   - selection: A binding to a property that determines the currently-selected optional value.
+    ///   - selectionMethod: The method of selecting options.
+    ///   - rowContent: A view builder that creates the view for a single option.
+    ///   - emptySelectionContent: A view that represents the empty selection.
+    @MainActor public init<S>(_ title: S, data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue?>, selectionMethod: SelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder emptySelectionContent: () -> EmptySelectionContent) where S: StringProtocol, Label == Text {
         self.data = data
         self.dataID = \.id
         self.children = children
         self.selection = selection
-        self.selectingMethod = selectingMethod
+        self.selectionMethod = selectionMethod
         self.rowContent = rowContent
-        self.nilSelectionContent = nilSelectionContent()
+        self.emptySelectionContent = emptySelectionContent()
         self.label = Text(title)
     }
     
     /// Creates a hierarchical picker that computes its options on demand from an underlying collection of identifiable data, optionally allowing users to select a single element. Picker displays a custom label.
-    @MainActor public init(data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue?>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder label: () -> Label) where NilSelectionContent == Text {
+    /// 
+    /// - Parameters:
+    ///   - data: The identifiable data for computing options.
+    ///   - children: A key path to a property whose non-`nil` value gives the children of `data`. A non-`nil` but empty value denotes an element capable of having children that's currently childless, such as an empty directory in a file system. On the other hand, if the property at the key path is `nil`, then the outline group treats `data` as a leaf in the tree, like a regular file in a file system.
+    ///   - selection: A binding to a property that determines the currently-selected optional value.
+    ///   - selectionMethod: The method of selecting options.
+    ///   - rowContent: A view builder that creates the view for a single option.
+    ///   - label: A view that describes the purpose of selecting an option.
+    @MainActor public init(data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue?>, selectionMethod: SelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder label: () -> Label) where EmptySelectionContent == Text {
         self.data = data
         self.dataID = \.id
         self.children = children
         self.selection = selection
-        self.selectingMethod = selectingMethod
+        self.selectionMethod = selectionMethod
         self.rowContent = rowContent
-        self.nilSelectionContent = Text(SupportingVariables.nilSelectionDefaultTitle, bundle: .module)
+        self.emptySelectionContent = Text("nilSelectionDefaultTitle", bundle: .module)
         self.label = label()
     }
     
     /// Creates a hierarchical picker that computes its options on demand from an underlying collection of identifiable data, optionally allowing users to select a single element. Picker displays a custom label and a custom empty selection view.
-    @MainActor public init(data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue?>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder label: () -> Label, @ViewBuilder nilSelectionContent: () -> NilSelectionContent) {
+    /// 
+    /// - Parameters:
+    ///   - data: The identifiable data for computing options.
+    ///   - children: A key path to a property whose non-`nil` value gives the children of `data`. A non-`nil` but empty value denotes an element capable of having children that's currently childless, such as an empty directory in a file system. On the other hand, if the property at the key path is `nil`, then the outline group treats `data` as a leaf in the tree, like a regular file in a file system.
+    ///   - selection: A binding to a property that determines the currently-selected optional value.
+    ///   - selectionMethod: The method of selecting options.
+    ///   - rowContent: A view builder that creates the view for a single option.
+    ///   - label: A view that describes the purpose of selecting an option.
+    ///   - emptySelectionContent: A view that represents the empty selection.
+    @MainActor public init(data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue?>, selectionMethod: SelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder label: () -> Label, @ViewBuilder emptySelectionContent: () -> EmptySelectionContent) {
         self.data = data
         self.dataID = \.id
         self.children = children
         self.selection = selection
-        self.selectingMethod = selectingMethod
+        self.selectionMethod = selectionMethod
         self.rowContent = rowContent
-        self.nilSelectionContent = nilSelectionContent()
+        self.emptySelectionContent = emptySelectionContent()
         self.label = label()
     }
 }
@@ -260,74 +360,131 @@ extension TreeOptionalPicker where Data.Element: Identifiable, ID == Data.Elemen
 extension TreeOptionalPicker {
     
     /// Creates a hierarchical picker that identifies its options based on a key path to the identifier of the underlying data, optionally allowing users to select a single element. Picker generates its label from a localized string key.
-    @MainActor public init(_ titleKey: LocalizedStringKey, data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue?>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Label == Text, NilSelectionContent == Text {
+    /// 
+    /// - Parameters:
+    ///   - titleKey: A localized string key that describes the purpose of selecting an option.
+    ///   - data: The data for populating options.
+    ///   - id: The key path to the data model's identifier.
+    ///   - children: A key path to a property whose non-`nil` value gives the children of `data`. A non-`nil` but empty value denotes an element capable of having children that's currently childless, such as an empty directory in a file system. On the other hand, if the property at the key path is `nil`, then the outline group treats `data` as a leaf in the tree, like a regular file in a file system.
+    ///   - selection: A binding to a property that determines the currently-selected optional value.
+    ///   - selectionMethod: The method of selecting options.
+    ///   - rowContent: A view builder that creates the view for a single option.
+    @MainActor public init(_ titleKey: LocalizedStringKey, data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue?>, selectionMethod: SelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Label == Text, EmptySelectionContent == Text {
         self.data = data
         self.dataID = id
         self.children = children
         self.selection = selection
-        self.selectingMethod = selectingMethod
+        self.selectionMethod = selectionMethod
         self.rowContent = rowContent
-        self.nilSelectionContent = Text(SupportingVariables.nilSelectionDefaultTitle, bundle: .module)
+        self.emptySelectionContent = Text("nilSelectionDefaultTitle", bundle: .module)
         self.label = Text(titleKey)
     }
     
     /// Creates a hierarchical picker that identifies its options based on a key path to the identifier of the underlying data, optionally allowing users to select a single element. Picker generates its label from a localized string key and displays a custom empty selection view.
-    @MainActor public init(_ titleKey: LocalizedStringKey, data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue?>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder nilSelectionContent: () -> NilSelectionContent) where Label == Text {
+    /// 
+    /// - Parameters:
+    ///   - titleKey: A localized string key that describes the purpose of selecting an option.
+    ///   - data: The data for populating options.
+    ///   - id: The key path to the data model's identifier.
+    ///   - children: A key path to a property whose non-`nil` value gives the children of `data`. A non-`nil` but empty value denotes an element capable of having children that's currently childless, such as an empty directory in a file system. On the other hand, if the property at the key path is `nil`, then the outline group treats `data` as a leaf in the tree, like a regular file in a file system.
+    ///   - selection: A binding to a property that determines the currently-selected optional value.
+    ///   - selectionMethod: The method of selecting options.
+    ///   - rowContent: A view builder that creates the view for a single option.
+    ///   - emptySelectionContent: A view that represents the empty selection.
+    @MainActor public init(_ titleKey: LocalizedStringKey, data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue?>, selectionMethod: SelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder emptySelectionContent: () -> EmptySelectionContent) where Label == Text {
         self.data = data
         self.dataID = id
         self.children = children
         self.selection = selection
-        self.selectingMethod = selectingMethod
+        self.selectionMethod = selectionMethod
         self.rowContent = rowContent
-        self.nilSelectionContent = nilSelectionContent()
+        self.emptySelectionContent = emptySelectionContent()
         self.label = Text(titleKey)
     }
     
     /// Creates a hierarchical picker that identifies its options based on a key path to the identifier of the underlying data, optionally allowing users to select a single element. Picker generates its label from a string.
-    @MainActor public init<S>(_ title: S, data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue?>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where S: StringProtocol, Label == Text, NilSelectionContent == Text {
+    /// 
+    /// - Parameters:
+    ///   - title: A string that describes the purpose of selecting an option.
+    ///   - data: The data for populating options.
+    ///   - id: The key path to the data model's identifier.
+    ///   - children: A key path to a property whose non-`nil` value gives the children of `data`. A non-`nil` but empty value denotes an element capable of having children that's currently childless, such as an empty directory in a file system. On the other hand, if the property at the key path is `nil`, then the outline group treats `data` as a leaf in the tree, like a regular file in a file system.
+    ///   - selection: A binding to a property that determines the currently-selected optional value.
+    ///   - selectionMethod: The method of selecting options.
+    ///   - rowContent: A view builder that creates the view for a single option.
+    @MainActor public init<S>(_ title: S, data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue?>, selectionMethod: SelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where S: StringProtocol, Label == Text, EmptySelectionContent == Text {
         self.data = data
         self.dataID = id
         self.children = children
         self.selection = selection
-        self.selectingMethod = selectingMethod
+        self.selectionMethod = selectionMethod
         self.rowContent = rowContent
-        self.nilSelectionContent = Text(SupportingVariables.nilSelectionDefaultTitle, bundle: .module)
+        self.emptySelectionContent = Text("nilSelectionDefaultTitle", bundle: .module)
         self.label = Text(title)
     }
     
     /// Creates a hierarchical picker that identifies its options based on a key path to the identifier of the underlying data, optionally allowing users to select a single element. Picker generates its label from a string and displays a custom empty selection view.
-    @MainActor public init<S>(_ title: S, data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue?>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder nilSelectionContent: () -> NilSelectionContent) where S: StringProtocol, Label == Text {
+    /// 
+    /// - Parameters:
+    ///   - title: A string that describes the purpose of selecting an option.
+    ///   - data: The data for populating options.
+    ///   - id: The key path to the data model's identifier.
+    ///   - children: A key path to a property whose non-`nil` value gives the children of `data`. A non-`nil` but empty value denotes an element capable of having children that's currently childless, such as an empty directory in a file system. On the other hand, if the property at the key path is `nil`, then the outline group treats `data` as a leaf in the tree, like a regular file in a file system.
+    ///   - selection: A binding to a property that determines the currently-selected optional value.
+    ///   - selectionMethod: The method of selecting options.
+    ///   - rowContent: A view builder that creates the view for a single option.
+    ///   - emptySelectionContent: A view that represents the empty selection.
+    @MainActor public init<S>(_ title: S, data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue?>, selectionMethod: SelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder emptySelectionContent: () -> EmptySelectionContent) where S: StringProtocol, Label == Text {
         self.data = data
         self.dataID = id
         self.children = children
         self.selection = selection
-        self.selectingMethod = selectingMethod
+        self.selectionMethod = selectionMethod
         self.rowContent = rowContent
-        self.nilSelectionContent = nilSelectionContent()
+        self.emptySelectionContent = emptySelectionContent()
         self.label = Text(title)
     }
     
     /// Creates a hierarchical picker that identifies its options based on a key path to the identifier of the underlying data, optionally allowing users to select a single element. Picker displays a custom label.
-    @MainActor public init(data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue?>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder label: () -> Label) where NilSelectionContent == Text {
+    /// 
+    /// - Parameters:
+    ///   - data: The data for populating options.
+    ///   - id: The key path to the data model's identifier.
+    ///   - children: A key path to a property whose non-`nil` value gives the children of `data`. A non-`nil` but empty value denotes an element capable of having children that's currently childless, such as an empty directory in a file system. On the other hand, if the property at the key path is `nil`, then the outline group treats `data` as a leaf in the tree, like a regular file in a file system.
+    ///   - selection: A binding to a property that determines the currently-selected optional value.
+    ///   - selectionMethod: The method of selecting options.
+    ///   - rowContent: A view builder that creates the view for a single option.
+    ///   - label: A view that describes the purpose of selecting an option.
+    @MainActor public init(data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue?>, selectionMethod: SelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder label: () -> Label) where EmptySelectionContent == Text {
         self.data = data
         self.dataID = id
         self.children = children
         self.selection = selection
-        self.selectingMethod = selectingMethod
+        self.selectionMethod = selectionMethod
         self.rowContent = rowContent
-        self.nilSelectionContent = Text(SupportingVariables.nilSelectionDefaultTitle, bundle: .module)
+        self.emptySelectionContent = Text("nilSelectionDefaultTitle", bundle: .module)
         self.label = label()
     }
     
     /// Creates a hierarchical picker that identifies its options based on a key path to the identifier of the underlying data, optionally allowing users to select a single element. Picker displays a custom label and a custom empty selection view.
-    @MainActor public init(data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue?>, selectingMethod: SelectingMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder label: () -> Label, @ViewBuilder nilSelectionContent: () -> NilSelectionContent) {
+    /// 
+    /// - Parameters:
+    ///   - data: The data for populating options.
+    ///   - id: The key path to the data model's identifier.
+    ///   - children: A key path to a property whose non-`nil` value gives the children of `data`. A non-`nil` but empty value denotes an element capable of having children that's currently childless, such as an empty directory in a file system. On the other hand, if the property at the key path is `nil`, then the outline group treats `data` as a leaf in the tree, like a regular file in a file system.
+    ///   - selection: A binding to a property that determines the currently-selected optional value.
+    ///   - selectionMethod: The method of selecting options.
+    ///   - rowContent: A view builder that creates the view for a single option.
+    ///   - label: A view that describes the purpose of selecting an option.
+    ///   - emptySelectionContent: A view that represents the empty selection.
+    @MainActor public init(data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue?>, selectionMethod: SelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder label: () -> Label, @ViewBuilder emptySelectionContent: () -> EmptySelectionContent) {
         self.data = data
         self.dataID = id
         self.children = children
         self.selection = selection
-        self.selectingMethod = selectingMethod
+        self.selectionMethod = selectionMethod
         self.rowContent = rowContent
-        self.nilSelectionContent = nilSelectionContent()
+        self.emptySelectionContent = emptySelectionContent()
         self.label = label()
     }
 }

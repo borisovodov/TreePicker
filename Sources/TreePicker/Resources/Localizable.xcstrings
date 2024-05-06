@@ -1,6 +1,12 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Location" : {
+
+    },
+    "Locations" : {
+
+    },
     "nilSelectionDefaultTitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -11,15 +17,6 @@
           }
         }
       }
-    },
-    "PickerPreview" : {
-
-    },
-    "self.label" : {
-
-    },
-    "self.selectedOptions" : {
-
     }
   },
   "version" : "1.0"

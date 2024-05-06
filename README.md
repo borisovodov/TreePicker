@@ -2,16 +2,34 @@
 
 **WORK IN PROGRESS. PLEASE, DON'T USE THIS PACKAGE.**
 
-TreePicker is a SwiftUI picker for selecting options from hierarchical data.
+A pack of SwiftUI tree pickers that provide selecting options from hierarchical data. Pickers work on macOS, iOS and visionOS. Library hasn't third-party dependencies.
 
 ![Lowest supported macOS version](https://img.shields.io/badge/macOS-13+-blue)
 ![Lowest supported iOS version](https://img.shields.io/badge/iOS-16+-blue)
 ![Lowest supported visionOS version](https://img.shields.io/badge/visionOS-1+-blue)
-[![Coverage Status](https://codecov.io/gh/borisovodov/TreePicker/graph/badge.svg?token=8E81T33PN8)](https://codecov.io/gh/borisovodov/TreePicker)
+[![Code Coverage Status](https://img.shields.io/codecov/c/github/borisovodov/TreePicker)](https://codecov.io/gh/borisovodov/TreePicker)
 [![Latest Release](https://img.shields.io/github/v/release/borisovodov/TreePicker)](https://github.com/borisovodov/TreePicker/releases) 
 
 ## Features
 
 ## Installation
 
+`.xcproject` → PROJECT → Package Dependencies → + → search "https://github.com/borisovodov/TreePicker" → Add Package
+
 ## Usage
+
+## Limitations and caveats
+
+про отказ от tag модифайера рассказать.
+/// Other examples of when the views in a picker's ``ForEach`` need an explicit
+/// tag modifier include when you:
+/// * Select over the cases of an enumeration that conforms to the
+///   <doc://com.apple.documentation/documentation/Swift/Identifiable> protocol
+///   by using anything besides `Self` as the `id` parameter type. For example,
+///   a string enumeration might use the case's `rawValue` string as the `id`.
+///   That identifier type doesn't match the selection type, which is the type
+///   of the enumeration itself.
+/// * Use an optional value for the `selection` input parameter. For that to
+///   work, you need to explicitly cast the tag modifier's input as
+///   <doc://com.apple.documentation/documentation/Swift/Optional> to match.
+///   For an example of this, see ``View/tag(_:)``.

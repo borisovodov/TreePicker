@@ -1,8 +1,6 @@
-name: GitHub Actions Workflow
+name: build and test
 on: [push]
 jobs:
-# https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-swift
-# https://medium.com/@przemek.jablonski/test-your-swift-package-with-github-actions-ci-22ac116480b8
   build:
     runs-on: macos-latest
     steps:

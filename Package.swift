@@ -6,8 +6,8 @@ let package = Package(
     name: "TreePicker",
     defaultLocalization: "en",
     platforms: [
-        .macOS(.v14),
-        .iOS(.v17),
+        .macOS(.v13),
+        .iOS(.v16),
         .visionOS(.v1),
     ],
     products: [

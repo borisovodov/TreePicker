@@ -9,6 +9,7 @@ jobs:
     - uses: actions/checkout@main
     - name: Build and test
       run: xcodebuild test -scheme TreePicker -destination "platform=iOS Simulator,name=iPhone 15" -destination "platform=macOS,arch=arm64"
+  run:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@main

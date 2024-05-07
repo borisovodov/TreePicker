@@ -1,13 +1,7 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "Location" : {
-
-    },
-    "Locations" : {
-
-    },
-    "nilSelectionDefaultTitle" : {
+    "emptySelectionDefaultTitle" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
@@ -17,6 +11,12 @@
           }
         }
       }
+    },
+    "Location" : {
+
+    },
+    "Locations" : {
+
     }
   },
   "version" : "1.0"

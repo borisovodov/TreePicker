@@ -6,11 +6,12 @@ A pack of SwiftUI tree pickers that provide selecting options from hierarchical 
 
 ![TreeMultiPicker example](Documentation/iOS-1.png)
 
+[![Latest release](https://img.shields.io/github/v/release/borisovodov/TreePicker)](https://github.com/borisovodov/TreePicker/releases)
+[![Build and test status](https://github.com/borisovodov/TreePicker/actions/workflows/workflow.yaml/badge.svg)](https://github.com/borisovodov/TreePicker/actions/workflows/workflow.yaml)
+[![Code coverage status](https://img.shields.io/codecov/c/github/borisovodov/TreePicker)](https://codecov.io/gh/borisovodov/TreePicker)
 [//]: # (Lowest supported macOS version, https://img.shields.io/badge/macOS-13+-blue)
 ![Lowest supported iOS version](https://img.shields.io/badge/iOS-16+-blue)
 ![Lowest supported visionOS version](https://img.shields.io/badge/visionOS-1+-blue)
-[![Code coverage status](https://img.shields.io/codecov/c/github/borisovodov/TreePicker)](https://codecov.io/gh/borisovodov/TreePicker)
-[![Latest release](https://img.shields.io/github/v/release/borisovodov/TreePicker)](https://github.com/borisovodov/TreePicker/releases)
 
 ## Features
 
@@ -21,6 +22,8 @@ A pack of SwiftUI tree pickers that provide selecting options from hierarchical 
 ### In Xcode
 
 `.xcproject` → PROJECT → Package Dependencies → + → search "https://github.com/borisovodov/TreePicker" → Add Package
+
+After that add `import TreePicker` in your source code.
 
 ## Usage
 
@@ -94,9 +97,3 @@ var body: some View {
 Рассказать про lable
 
 Рассказать про emptySelectionContent и для каких пикеров он доступен
- 
-[//]: # (Limitations and caveats)
-[//]: # (про отказ от tag модифайера рассказать.)
-[//]: # (Other examples of when the views in a picker's `ForEach` need an explicit tag modifier include when you:)
-[//]: # (Select over the cases of an enumeration that conforms to the Identifiable protocol by using anything besides `Self` as the `id` parameter type. For example, a string enumeration might use the case's `rawValue` string as the `id`. That identifier type doesn't match the selection type, which is the type of the enumeration itself.)
-[//]: # (Use an optional value for the `selection` input parameter. For that to work, you need to explicitly cast the tag modifier's input as Optional to match. For an example of this, see `tag(_:)`)

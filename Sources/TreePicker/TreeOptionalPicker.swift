@@ -77,7 +77,7 @@ import SwiftUI
     /// The key path to the data model's identifier.
     private var dataID: KeyPath<Data.Element, ID>
     
-    /// A key path to a property whose non-`nil` value gives the children of `data`. A non-`nil` but empty value denotes a node capable of having children that is currently childless, such as an empty directory in a file system. On the other hand, if the property at the key path is `nil`, then `data` is treated as a leaf node in the tree, like a regular file in a file system.
+    /// A key path to a property whose value gives the children of `data`.
     private var children: KeyPath<Data.Element, Data?>
     
     /// A binding to a selected value.
@@ -92,7 +92,7 @@ import SwiftUI
     /// A view that describes the purpose of selecting an option.
     private var label: Label
     
-    /// A view that present `nil` selected value.
+    /// A view that represents an empty selection.
     private var emptySelectionContent: EmptySelectionContent
     
     /// The content and behavior of the view.
@@ -238,7 +238,7 @@ extension TreeOptionalPicker where Data.Element: Identifiable, ID == Data.Elemen
     /// - Parameters:
     ///   - titleKey: A localized string key that describes the purpose of selecting an option.
     ///   - data: The identifiable data for computing options.
-    ///   - children: A key path to a property whose non-`nil` value gives the children of `data`. A non-`nil` but empty value denotes an element capable of having children that's currently childless, such as an empty directory in a file system. On the other hand, if the property at the key path is `nil`, then the outline group treats `data` as a leaf in the tree, like a regular file in a file system.
+    ///   - children: A key path to a property whose value gives the children of `data`.
     ///   - selection: A binding to a property that determines the currently-selected optional value.
     ///   - selectionMethod: The method of selecting options.
     ///   - rowContent: A view builder that creates the view for a single option.
@@ -249,7 +249,7 @@ extension TreeOptionalPicker where Data.Element: Identifiable, ID == Data.Elemen
         self.selection = selection
         self.selectionMethod = selectionMethod
         self.rowContent = rowContent
-        self.emptySelectionContent = Text("nilSelectionDefaultTitle", bundle: .module)
+        self.emptySelectionContent = Text("emptySelectionDefaultTitle", bundle: .module)
         self.label = Text(titleKey)
     }
     
@@ -258,11 +258,11 @@ extension TreeOptionalPicker where Data.Element: Identifiable, ID == Data.Elemen
     /// - Parameters:
     ///   - titleKey: A localized string key that describes the purpose of selecting an option.
     ///   - data: The identifiable data for computing options.
-    ///   - children: A key path to a property whose non-`nil` value gives the children of `data`. A non-`nil` but empty value denotes an element capable of having children that's currently childless, such as an empty directory in a file system. On the other hand, if the property at the key path is `nil`, then the outline group treats `data` as a leaf in the tree, like a regular file in a file system.
+    ///   - children: A key path to a property whose value gives the children of `data`.
     ///   - selection: A binding to a property that determines the currently-selected optional value.
     ///   - selectionMethod: The method of selecting options.
     ///   - rowContent: A view builder that creates the view for a single option.
-    ///   - emptySelectionContent: A view that represents the empty selection.
+    ///   - emptySelectionContent: A view that represents an empty selection.
     @MainActor public init(_ titleKey: LocalizedStringKey, data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue?>, selectionMethod: SelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder emptySelectionContent: () -> EmptySelectionContent) where Label == Text {
         self.data = data
         self.dataID = \.id
@@ -279,7 +279,7 @@ extension TreeOptionalPicker where Data.Element: Identifiable, ID == Data.Elemen
     /// - Parameters:
     ///   - title: A string that describes the purpose of selecting an option.
     ///   - data: The identifiable data for computing options.
-    ///   - children: A key path to a property whose non-`nil` value gives the children of `data`. A non-`nil` but empty value denotes an element capable of having children that's currently childless, such as an empty directory in a file system. On the other hand, if the property at the key path is `nil`, then the outline group treats `data` as a leaf in the tree, like a regular file in a file system.
+    ///   - children: A key path to a property whose value gives the children of `data`.
     ///   - selection: A binding to a property that determines the currently-selected optional value.
     ///   - selectionMethod: The method of selecting options.
     ///   - rowContent: A view builder that creates the view for a single option.
@@ -290,7 +290,7 @@ extension TreeOptionalPicker where Data.Element: Identifiable, ID == Data.Elemen
         self.selection = selection
         self.selectionMethod = selectionMethod
         self.rowContent = rowContent
-        self.emptySelectionContent = Text("nilSelectionDefaultTitle", bundle: .module)
+        self.emptySelectionContent = Text("emptySelectionDefaultTitle", bundle: .module)
         self.label = Text(title)
     }
     
@@ -299,11 +299,11 @@ extension TreeOptionalPicker where Data.Element: Identifiable, ID == Data.Elemen
     /// - Parameters:
     ///   - title: A string that describes the purpose of selecting an option.
     ///   - data: The identifiable data for computing options.
-    ///   - children: A key path to a property whose non-`nil` value gives the children of `data`. A non-`nil` but empty value denotes an element capable of having children that's currently childless, such as an empty directory in a file system. On the other hand, if the property at the key path is `nil`, then the outline group treats `data` as a leaf in the tree, like a regular file in a file system.
+    ///   - children: A key path to a property whose value gives the children of `data`.
     ///   - selection: A binding to a property that determines the currently-selected optional value.
     ///   - selectionMethod: The method of selecting options.
     ///   - rowContent: A view builder that creates the view for a single option.
-    ///   - emptySelectionContent: A view that represents the empty selection.
+    ///   - emptySelectionContent: A view that represents an empty selection.
     @MainActor public init<S>(_ title: S, data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue?>, selectionMethod: SelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder emptySelectionContent: () -> EmptySelectionContent) where S: StringProtocol, Label == Text {
         self.data = data
         self.dataID = \.id
@@ -319,7 +319,7 @@ extension TreeOptionalPicker where Data.Element: Identifiable, ID == Data.Elemen
     /// 
     /// - Parameters:
     ///   - data: The identifiable data for computing options.
-    ///   - children: A key path to a property whose non-`nil` value gives the children of `data`. A non-`nil` but empty value denotes an element capable of having children that's currently childless, such as an empty directory in a file system. On the other hand, if the property at the key path is `nil`, then the outline group treats `data` as a leaf in the tree, like a regular file in a file system.
+    ///   - children: A key path to a property whose value gives the children of `data`.
     ///   - selection: A binding to a property that determines the currently-selected optional value.
     ///   - selectionMethod: The method of selecting options.
     ///   - rowContent: A view builder that creates the view for a single option.
@@ -331,7 +331,7 @@ extension TreeOptionalPicker where Data.Element: Identifiable, ID == Data.Elemen
         self.selection = selection
         self.selectionMethod = selectionMethod
         self.rowContent = rowContent
-        self.emptySelectionContent = Text("nilSelectionDefaultTitle", bundle: .module)
+        self.emptySelectionContent = Text("emptySelectionDefaultTitle", bundle: .module)
         self.label = label()
     }
     
@@ -339,12 +339,12 @@ extension TreeOptionalPicker where Data.Element: Identifiable, ID == Data.Elemen
     /// 
     /// - Parameters:
     ///   - data: The identifiable data for computing options.
-    ///   - children: A key path to a property whose non-`nil` value gives the children of `data`. A non-`nil` but empty value denotes an element capable of having children that's currently childless, such as an empty directory in a file system. On the other hand, if the property at the key path is `nil`, then the outline group treats `data` as a leaf in the tree, like a regular file in a file system.
+    ///   - children: A key path to a property whose value gives the children of `data`.
     ///   - selection: A binding to a property that determines the currently-selected optional value.
     ///   - selectionMethod: The method of selecting options.
     ///   - rowContent: A view builder that creates the view for a single option.
     ///   - label: A view that describes the purpose of selecting an option.
-    ///   - emptySelectionContent: A view that represents the empty selection.
+    ///   - emptySelectionContent: A view that represents an empty selection.
     @MainActor public init(data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue?>, selectionMethod: SelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder label: () -> Label, @ViewBuilder emptySelectionContent: () -> EmptySelectionContent) {
         self.data = data
         self.dataID = \.id
@@ -365,7 +365,7 @@ extension TreeOptionalPicker {
     ///   - titleKey: A localized string key that describes the purpose of selecting an option.
     ///   - data: The data for populating options.
     ///   - id: The key path to the data model's identifier.
-    ///   - children: A key path to a property whose non-`nil` value gives the children of `data`. A non-`nil` but empty value denotes an element capable of having children that's currently childless, such as an empty directory in a file system. On the other hand, if the property at the key path is `nil`, then the outline group treats `data` as a leaf in the tree, like a regular file in a file system.
+    ///   - children: A key path to a property whose value gives the children of `data`.
     ///   - selection: A binding to a property that determines the currently-selected optional value.
     ///   - selectionMethod: The method of selecting options.
     ///   - rowContent: A view builder that creates the view for a single option.
@@ -376,7 +376,7 @@ extension TreeOptionalPicker {
         self.selection = selection
         self.selectionMethod = selectionMethod
         self.rowContent = rowContent
-        self.emptySelectionContent = Text("nilSelectionDefaultTitle", bundle: .module)
+        self.emptySelectionContent = Text("emptySelectionDefaultTitle", bundle: .module)
         self.label = Text(titleKey)
     }
     
@@ -386,11 +386,11 @@ extension TreeOptionalPicker {
     ///   - titleKey: A localized string key that describes the purpose of selecting an option.
     ///   - data: The data for populating options.
     ///   - id: The key path to the data model's identifier.
-    ///   - children: A key path to a property whose non-`nil` value gives the children of `data`. A non-`nil` but empty value denotes an element capable of having children that's currently childless, such as an empty directory in a file system. On the other hand, if the property at the key path is `nil`, then the outline group treats `data` as a leaf in the tree, like a regular file in a file system.
+    ///   - children: A key path to a property whose value gives the children of `data`.
     ///   - selection: A binding to a property that determines the currently-selected optional value.
     ///   - selectionMethod: The method of selecting options.
     ///   - rowContent: A view builder that creates the view for a single option.
-    ///   - emptySelectionContent: A view that represents the empty selection.
+    ///   - emptySelectionContent: A view that represents an empty selection.
     @MainActor public init(_ titleKey: LocalizedStringKey, data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue?>, selectionMethod: SelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder emptySelectionContent: () -> EmptySelectionContent) where Label == Text {
         self.data = data
         self.dataID = id
@@ -408,7 +408,7 @@ extension TreeOptionalPicker {
     ///   - title: A string that describes the purpose of selecting an option.
     ///   - data: The data for populating options.
     ///   - id: The key path to the data model's identifier.
-    ///   - children: A key path to a property whose non-`nil` value gives the children of `data`. A non-`nil` but empty value denotes an element capable of having children that's currently childless, such as an empty directory in a file system. On the other hand, if the property at the key path is `nil`, then the outline group treats `data` as a leaf in the tree, like a regular file in a file system.
+    ///   - children: A key path to a property whose value gives the children of `data`.
     ///   - selection: A binding to a property that determines the currently-selected optional value.
     ///   - selectionMethod: The method of selecting options.
     ///   - rowContent: A view builder that creates the view for a single option.
@@ -419,7 +419,7 @@ extension TreeOptionalPicker {
         self.selection = selection
         self.selectionMethod = selectionMethod
         self.rowContent = rowContent
-        self.emptySelectionContent = Text("nilSelectionDefaultTitle", bundle: .module)
+        self.emptySelectionContent = Text("emptySelectionDefaultTitle", bundle: .module)
         self.label = Text(title)
     }
     
@@ -429,11 +429,11 @@ extension TreeOptionalPicker {
     ///   - title: A string that describes the purpose of selecting an option.
     ///   - data: The data for populating options.
     ///   - id: The key path to the data model's identifier.
-    ///   - children: A key path to a property whose non-`nil` value gives the children of `data`. A non-`nil` but empty value denotes an element capable of having children that's currently childless, such as an empty directory in a file system. On the other hand, if the property at the key path is `nil`, then the outline group treats `data` as a leaf in the tree, like a regular file in a file system.
+    ///   - children: A key path to a property whose value gives the children of `data`.
     ///   - selection: A binding to a property that determines the currently-selected optional value.
     ///   - selectionMethod: The method of selecting options.
     ///   - rowContent: A view builder that creates the view for a single option.
-    ///   - emptySelectionContent: A view that represents the empty selection.
+    ///   - emptySelectionContent: A view that represents an empty selection.
     @MainActor public init<S>(_ title: S, data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue?>, selectionMethod: SelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder emptySelectionContent: () -> EmptySelectionContent) where S: StringProtocol, Label == Text {
         self.data = data
         self.dataID = id
@@ -450,7 +450,7 @@ extension TreeOptionalPicker {
     /// - Parameters:
     ///   - data: The data for populating options.
     ///   - id: The key path to the data model's identifier.
-    ///   - children: A key path to a property whose non-`nil` value gives the children of `data`. A non-`nil` but empty value denotes an element capable of having children that's currently childless, such as an empty directory in a file system. On the other hand, if the property at the key path is `nil`, then the outline group treats `data` as a leaf in the tree, like a regular file in a file system.
+    ///   - children: A key path to a property whose value gives the children of `data`.
     ///   - selection: A binding to a property that determines the currently-selected optional value.
     ///   - selectionMethod: The method of selecting options.
     ///   - rowContent: A view builder that creates the view for a single option.
@@ -462,7 +462,7 @@ extension TreeOptionalPicker {
         self.selection = selection
         self.selectionMethod = selectionMethod
         self.rowContent = rowContent
-        self.emptySelectionContent = Text("nilSelectionDefaultTitle", bundle: .module)
+        self.emptySelectionContent = Text("emptySelectionDefaultTitle", bundle: .module)
         self.label = label()
     }
     
@@ -471,12 +471,12 @@ extension TreeOptionalPicker {
     /// - Parameters:
     ///   - data: The data for populating options.
     ///   - id: The key path to the data model's identifier.
-    ///   - children: A key path to a property whose non-`nil` value gives the children of `data`. A non-`nil` but empty value denotes an element capable of having children that's currently childless, such as an empty directory in a file system. On the other hand, if the property at the key path is `nil`, then the outline group treats `data` as a leaf in the tree, like a regular file in a file system.
+    ///   - children: A key path to a property whose value gives the children of `data`.
     ///   - selection: A binding to a property that determines the currently-selected optional value.
     ///   - selectionMethod: The method of selecting options.
     ///   - rowContent: A view builder that creates the view for a single option.
     ///   - label: A view that describes the purpose of selecting an option.
-    ///   - emptySelectionContent: A view that represents the empty selection.
+    ///   - emptySelectionContent: A view that represents an empty selection.
     @MainActor public init(data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue?>, selectionMethod: SelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder label: () -> Label, @ViewBuilder emptySelectionContent: () -> EmptySelectionContent) {
         self.data = data
         self.dataID = id

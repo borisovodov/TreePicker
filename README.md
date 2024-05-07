@@ -7,16 +7,33 @@ A pack of SwiftUI tree pickers that provide selecting options from hierarchical 
 ![Lowest supported macOS version](https://img.shields.io/badge/macOS-13+-blue)
 ![Lowest supported iOS version](https://img.shields.io/badge/iOS-16+-blue)
 ![Lowest supported visionOS version](https://img.shields.io/badge/visionOS-1+-blue)
-[![Code Coverage Status](https://img.shields.io/codecov/c/github/borisovodov/TreePicker)](https://codecov.io/gh/borisovodov/TreePicker)
-[![Latest Release](https://img.shields.io/github/v/release/borisovodov/TreePicker)](https://github.com/borisovodov/TreePicker/releases) 
+[![Code coverage status](https://img.shields.io/codecov/c/github/borisovodov/TreePicker)](https://codecov.io/gh/borisovodov/TreePicker)
+[![Latest release](https://img.shields.io/github/v/release/borisovodov/TreePicker)](https://github.com/borisovodov/TreePicker/releases) 
 
 ## Features
 
 ## Installation
 
+### In Xcode
+
 `.xcproject` → PROJECT → Package Dependencies → + → search "https://github.com/borisovodov/TreePicker" → Add Package
 
 ## Usage
+
+Рассказать про data и dataID и возможности data когда Identifable
+
+Рассказать про children
+
+Рассказать про три разных пикера с тремя разными selection. Рассказать по какому принципу производится выделение элементов в зависимости от типа selection
+
+Рассказать про разные методы селекшена в разных типах пикера
+
+Рассказать про rowContent
+
+Рассказать про lable
+
+Рассказать про emptySelectionContent и для каких пикеров он доступен
+ 
 
 ## Limitations and caveats
 

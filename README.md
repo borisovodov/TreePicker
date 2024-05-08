@@ -76,7 +76,7 @@ var body: some View {
 }
 ```
 
-[//]: # (Выглядеть на гифах это будет вот так на iOS.)
+![TreeMultiPicker on iOS example](Documentation/iOS-2.gif)
 
 If `data` doesn't conform `Identifable` protocol when you can specify key path to hashable identifier through `id` parameter. For example for `Location` like this:
 
@@ -109,4 +109,4 @@ TreeMultiPicker("Location", data: locations, children: \.children, selection: $m
 }
 ```
 
-[//]: # (Выглядеть на гифах это будет вот так на iOS.)
+![TreeMultiPicker with cascading selection method on iOS example](Documentation/iOS-3.gif)

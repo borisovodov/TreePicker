@@ -12,7 +12,7 @@ import SwiftUI
 ///
 /// You create a tree picker by providing a tree-structured data, `children` parameter that provides a key path to get the child nodes at any level, selection binding, a label, and a row content.
 ///
-/// The following example shows how to create a tree picker with the tree of a `Location` type which conforms to `Identifiable` protocol:
+/// The following example shows how to create a tree picker with the tree of a `Location` type that conforms to `Identifiable` protocol:
 ///
 ///     struct Location: Hashable, Identifiable {
 ///         let id = UUID()
@@ -55,10 +55,10 @@ import SwiftUI
 ///         }
 ///     }
 ///
-/// When selecting a row in a tree, depending on the type of `SelectionValue`, either the object itself became selection value or the value of it's identifier.
+/// When select a row in a tree, depending on the type of `SelectionValue`, either the object itself became selection value or the value of it's identifier.
 ///
 /// ### Selection methods
-/// You can allow all nodes selection or only leaves. For this you need to specify `selectingMethod` parameter. By default parameter equal `leafNodes` value. It means that only node without children will be selectable. If choose `nodes` value, all nodes (include *folders*) will be selectable.
+/// You can allow all nodes selection or only leaves. For this you need to specify `selectionMethod` parameter. By default parameter equal `leafNodes` value. It means that only node without children will be selectable. If choose `nodes` value, all nodes (include *folders*) will be selectable.
 @available(macOS 13.0, iOS 16.0, visionOS 1.0, *)
 @MainActor public struct TreeSinglePicker<Label: View, SelectionValue: Hashable, Data: RandomAccessCollection, ID: Hashable, RowContent: View> : View {
     

@@ -12,7 +12,7 @@ import SwiftUI
 ///
 /// You create a tree picker by providing a tree-structured data, `children` parameter that provides a key path to get the child nodes at any level, selection binding, a label, and a row content. Optionaly you can specify a view that represent empty selection value.
 ///
-/// The following example shows how to create a tree picker with the tree of a `Location` type which conforms to `Identifiable` protocol:
+/// The following example shows how to create a tree picker with the tree of a `Location` type that conforms to `Identifiable` protocol:
 ///
 ///     struct Location: Hashable, Identifiable {
 ///         let id = UUID()
@@ -55,10 +55,10 @@ import SwiftUI
 ///         }
 ///     }
 ///
-/// When selecting a row in a tree, depending on the type of `SelectionValue`, either the object itself add to the set of selection values or the value of it's identifier.
+/// When select a row in a tree, depending on the type of `SelectionValue`, either the object itself add to the set of selection values or the value of it's identifier.
 ///
 /// ### Selection methods
-/// You can allow all nodes selection or only leaves. For this you need to specify `selectingMethod` parameter. By default parameter equal `leafNodes` value. It means that only node without children will be selectable. If choose `independent` value, all nodes (include *folders*) will be selectable. For cascading selection of option children you need to use `cascading` value.
+/// You can allow all nodes selection or only leaves. For this you need to specify `selectionMethod` parameter. By default parameter equal `leafNodes` value. It means that only node without children will be selectable. If choose `independent` value, all nodes (include *folders*) will be selectable. For cascading selection of option children you need to use `cascading` value.
 @available(macOS 13.0, iOS 16.0, visionOS 1.0, *)
 @MainActor public struct TreeMultiPicker<Label: View, SelectionValue: Hashable, Data: RandomAccessCollection, ID: Hashable, RowContent: View, EmptySelectionContent: View> : View {
     
@@ -70,7 +70,7 @@ import SwiftUI
         /// The method in which all tree nodes are independently selectable.
         case independent
         
-        /// The method in which all tree nodes are selectable and selecting a node automatically selects all its child notes.
+        /// The method in which all tree nodes are selectable and selecting a node automatically selects all its child nodes.
         case cascading
     }
     

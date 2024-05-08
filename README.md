@@ -1,35 +1,37 @@
 # TreePicker
 
-**WORK IN PROGRESS. PLEASE, DON'T USE THIS PACKAGE.**
-
-A pack of SwiftUI tree pickers that provide selecting options from hierarchical data. Pickers work on iOS and visionOS. Library hasn't third-party dependencies.
+A pack of SwiftUI tree pickers that provide selecting options from hierarchical data. Pickers work on iOS, iPadOS and visionOS. Library hasn't third-party dependencies.
 
 ![TreeMultiPicker example](Documentation/iOS-1.png)
 
 [![Latest release](https://img.shields.io/github/v/release/borisovodov/TreePicker)](https://github.com/borisovodov/TreePicker/releases)
 [![Build and test status](https://github.com/borisovodov/TreePicker/actions/workflows/workflow.yaml/badge.svg)](https://github.com/borisovodov/TreePicker/actions/workflows/workflow.yaml)
 [![Code coverage status](https://img.shields.io/codecov/c/github/borisovodov/TreePicker)](https://codecov.io/gh/borisovodov/TreePicker)
-[//]: # (Lowest supported macOS version, https://img.shields.io/badge/macOS-13+-blue)
 ![Lowest supported iOS version](https://img.shields.io/badge/iOS-16+-blue)
 ![Lowest supported visionOS version](https://img.shields.io/badge/visionOS-1+-blue)
 
 ## Features
 
-Рассказать, что это либа с тремя пикерами, которые обеспечивают выбор из иерархического дерева.
+`TreePicker` package has several tree pickers for different selection value: exactly one selected value, optional value and set of values. Use `TreeSinglePicker`, `TreeOptionalPicker` and `TreeMultiPicker` respectively.
+
+Work with hierarchical data, it's children and selection is similar to SwiftUI hierarchical `List`. Additionaly you can specify selection method. Next methods available:
+* Only leaves (nodes without children) are selectable.
+* All nodes (include *folders*) are selectable.
+* All nodes are selectable and selecting a node automatically selects all its child nodes. This method is available for `TreeMultiPicker` only.
 
 ## Installation
 
 ### In Xcode
 
-`.xcproject` → PROJECT → Package Dependencies → + → search "https://github.com/borisovodov/TreePicker" → Add Package
+Open `.xcproject` file → click `PROJECT` → `Package Dependencies` → `+` → type `https://github.com/borisovodov/TreePicker` in the search field → click `Add Package`
 
 After that add `import TreePicker` in your source code.
 
 ## Usage
 
-Пример: https://swiftpackageindex.com/btfranklin/CleverBird, https://swiftpackageindex.com/apple/app-store-server-library-swift
+You create a tree picker by providing a tree-structured data, `children` parameter that provides a key path to get the child nodes at any level, selection binding, a label that describes the purpose of selecting an option and a row content. For `TreeOptionalPicker` and `TreeMultiPicker` you can specify a view that represent empty selection value.
 
-Допустим возьмём такое-то дерево
+The following example shows how to create a tree picker with the tree of a `Location` type that conforms to `Identifiable` protocol. Picker provide multiple selection.
 
 ```swift
 struct Location: Hashable, Identifiable {
@@ -60,13 +62,7 @@ private let locations: [Location] = [
     ]),
     .init(title: "🇷🇺 Russia", children: nil)
 ]
-```
 
-Нужно импортировать библиотеку.
-
-Тогда это можно вот так использовать
-
-```swift
 @State private var multiSelection: Set<UUID> = []
 
 var body: some View {
@@ -80,20 +76,37 @@ var body: some View {
 }
 ```
 
-[//]: # (Выглядеть на картинках это будет вот так на iOS.)
+[//]: # (Выглядеть на гифах это будет вот так на iOS.)
 
-[//]: # (Описание картинки для iOS)
+If `data` doesn't conform `Identifable` protocol when you can specify key path to hashable identifier through `id` parameter. For example for `Location` like this:
 
-Рассказать про data и dataID и возможности data когда Identifable
+```swift
+struct Location: Hashable {
+    var title: String
+    var children: [Location]?
+}
+```
 
-Рассказать про children
+you need to use initializer with `id` parameter:
 
-Рассказать про три разных пикера с тремя разными selection. Рассказать по какому принципу производится выделение элементов в зависимости от типа selection
+```swift
+TreeMultiPicker("Location", data: locations, id: \.title, children: \.children, selection: $multiSelection) { location in
+    Text(location.title)
+}
+```
 
-Рассказать про разные методы селекшена в разных типах пикера
+### Selection value
 
-Рассказать про rowContent
+When select a row in a tree, depending on the type of `SelectionValue`, either the object itself became selection value or the value of it's identifier.
 
-Рассказать про lable
+### Selection methods
 
-Рассказать про emptySelectionContent и для каких пикеров он доступен
+You can allow all nodes selection or only leaves. For this you need to specify `selectionMethod` parameter. By default parameter equal `leafNodes` value. It means that only node without children will be selectable. If choose `nodes` value (`independent` for `TreeMultiPicker`), all nodes (include *folders*) will be selectable. For cascading selection of option children in `TreeMultiPicker` you need to use `cascading` value. Create multi picker with cascading selection method for example:
+
+```swift
+TreeMultiPicker("Location", data: locations, children: \.children, selection: $multiSelection, selectionMethod: .cascading) { location in
+    Text(location.title)
+}
+```
+
+[//]: # (Выглядеть на гифах это будет вот так на iOS.)

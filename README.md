@@ -2,7 +2,7 @@
 
 A pack of SwiftUI tree pickers that provide selecting options from hierarchical data. Pickers work on iOS, iPadOS and visionOS. Library hasn't third-party dependencies.
 
-![TreeMultiPicker example](Documentation/iOS-1.png)
+![TreeMultiPicker example](Sources/TreePicker/TreePicker.docc/Resources/iOS-1.png)
 
 [![Latest release](https://img.shields.io/github/v/release/borisovodov/TreePicker)](https://github.com/borisovodov/TreePicker/releases)
 [![Build and test status](https://github.com/borisovodov/TreePicker/actions/workflows/workflow.yml/badge.svg)](https://github.com/borisovodov/TreePicker/actions/workflows/workflow.yml)
@@ -76,7 +76,7 @@ var body: some View {
 }
 ```
 
-![TreeMultiPicker on iOS example](Documentation/iOS-2.gif)
+![TreeMultiPicker on iOS example](Sources/TreePicker/TreePicker.docc/Resources/iOS-2.gif)
 
 If `data` doesn't conform `Identifable` protocol when you can specify key path to hashable identifier through `id` parameter. For example for `Location` like this:
 
@@ -109,4 +109,4 @@ TreeMultiPicker("Location", data: locations, children: \.children, selection: $m
 }
 ```
 
-![TreeMultiPicker with cascading selection method on iOS example](Documentation/iOS-3.gif)
+![TreeMultiPicker with cascading selection method on iOS example](Sources/TreePicker/TreePicker.docc/Resources/iOS-3.gif)

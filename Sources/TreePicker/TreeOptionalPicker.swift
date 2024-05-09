@@ -14,51 +14,53 @@ import SwiftUI
 ///
 /// The following example shows how to create a tree picker with the tree of a `Location` type that conforms to `Identifiable` protocol:
 ///
-///     struct Location: Hashable, Identifiable {
-///         let id = UUID()
-///         var title: String
-///         var children: [Location]?
-///     }
+/// ```swift
+/// struct Location: Hashable, Identifiable {
+///     let id = UUID()
+///     var title: String
+///     var children: [Location]?
+/// }
 ///
-///     private let locations: [Location] = [
-///         .init(title: "🇬🇧 United Kingdom", children: [
-///             .init(title: "London", children: nil),
-///             .init(title: "Birmingham", children: nil),
-///             .init(title: "Bristol", children: nil)
+/// private let locations: [Location] = [
+///     .init(title: "🇬🇧 United Kingdom", children: [
+///         .init(title: "London", children: nil),
+///         .init(title: "Birmingham", children: nil),
+///         .init(title: "Bristol", children: nil)
+///     ]),
+///     .init(title: "🇫🇷 France", children: [
+///         .init(title: "Paris", children: nil),
+///         .init(title: "Toulouse", children: nil),
+///         .init(title: "Bordeaux", children: nil)
+///     ]),
+///     .init(title: "🇩🇪 Germany", children: [
+///         .init(title: "Berlin", children: nil),
+///         .init(title: "Hesse", children: [
+///             .init(title: "Frankfurt", children: nil),
+///             .init(title: "Darmstadt", children: nil),
+///             .init(title: "Kassel", children: nil),
 ///         ]),
-///         .init(title: "🇫🇷 France", children: [
-///             .init(title: "Paris", children: nil),
-///             .init(title: "Toulouse", children: nil),
-///             .init(title: "Bordeaux", children: nil)
-///         ]),
-///         .init(title: "🇩🇪 Germany", children: [
-///             .init(title: "Berlin", children: nil),
-///             .init(title: "Hesse", children: [
-///                 .init(title: "Frankfurt", children: nil),
-///                 .init(title: "Darmstadt", children: nil),
-///                 .init(title: "Kassel", children: nil),
-///             ]),
-///             .init(title: "Hamburg", children: nil)
-///         ]),
-///         .init(title: "🇷🇺 Russia", children: nil)
-///     ]
+///         .init(title: "Hamburg", children: nil)
+///     ]),
+///     .init(title: "🇷🇺 Russia", children: nil)
+/// ]
 ///
-///     @State private var selection: UUID? = nil
+/// @State private var selection: UUID? = nil
 ///
-///     var body: some View {
-///         NavigationStack {
-///             Form {
-///                 TreeOptionalPicker("Location", data: locations, children: \.children, selection: $selection) { location in
-///                     Text(location.title)
-///                 }
+/// var body: some View {
+///     NavigationStack {
+///         Form {
+///             TreeOptionalPicker("Location", data: locations, children: \.children, selection: $selection) { location in
+///                 Text(location.title)
 ///             }
 ///         }
 ///     }
+/// }
+/// ```
 ///
 /// When select a row in a tree, depending on the type of `SelectionValue`, either the object itself became selection value or the value of it's identifier.
 ///
 /// ### Selection methods
-/// You can allow all nodes selection or only leaves. For this you need to specify `selectionMethod` parameter. By default parameter equal `leafNodes` value. It means that only node without children will be selectable. If choose `nodes` value, all nodes (include *folders*) will be selectable.
+/// You can allow all nodes selection or only leaves. For this you need to specify `selectionMethod` parameter. By default parameter equal ``SelectionMethod/leafNodes`` value. It means that only node without children will be selectable. If choose ``SelectionMethod/nodes`` value, all nodes (include *folders*) will be selectable.
 @available(macOS 13.0, iOS 16.0, visionOS 1.0, *)
 @MainActor public struct TreeOptionalPicker<Label: View, SelectionValue: Hashable, Data: RandomAccessCollection, ID: Hashable, RowContent: View, EmptySelectionContent: View> : View {
     

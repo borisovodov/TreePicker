@@ -17,7 +17,9 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "TreePicker"),
+            name: "TreePicker",
+            resources: [.process("Resources")]
+        ),
         .testTarget(
             name: "TreePickerTests",
             dependencies: ["TreePicker"]),

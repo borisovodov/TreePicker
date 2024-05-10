@@ -9,7 +9,9 @@ jobs:
       run: swift build
     - name: Test
       run: swift test --enable-code-coverage
-    - name: Prepare test coverage
+    - name: Test coverage
+      uses: maxep/spm-lcov-action@0.3.0
+    - name: Upload coverage report to Codecov
       uses: codecov/codecov-action@v4.3.1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}

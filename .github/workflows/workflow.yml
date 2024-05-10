@@ -5,13 +5,7 @@ jobs:
     runs-on: macos-latest
     steps:
     - uses: actions/checkout@main
-    - name: Build and test
-      run: xcodebuild test -scheme TreePicker -destination "platform=iOS Simulator,name=iPhone 15" -destination "platform=macOS,arch=arm64"
-  run:
-    runs-on: macos-latest
-    steps:
-    - uses: actions/checkout@main
-    - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v4.3.1
-      with:
-        token: ${{ secrets.CODECOV_TOKEN }}
+    - name: Build
+      run: swift build
+    - name: Test
+      run: swift test --enable-code-coverage

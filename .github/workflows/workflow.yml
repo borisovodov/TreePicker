@@ -4,7 +4,7 @@ jobs:
   build:
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@codecov-reports
+    - uses: actions/checkout@main
     - name: Build
       run: swift build
     - name: Test

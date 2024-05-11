@@ -4,13 +4,15 @@ Create tree pickers.
 
 ## Installation
 
-### In Xcode
+Add next row in your `Package.swift` file `dependencies` section:
 
-Open `.xcproject` file → click `PROJECT` → `Package Dependencies` → `+` → type `https://github.com/borisovodov/TreePicker` in the search field → click `Add Package`
+`.package(url: "https://github.com/borisovodov/TreePicker.git", from: "0.1.0")`.
 
-After that add `import TreePicker` in your source code.
+Alternatively you can add package dependency in Xcode. For that open `.xcproject` file → click `PROJECT` → `Package Dependencies` → `+` → type `https://github.com/borisovodov/TreePicker` in the search field → click `Add Package`. See the Xcode [documentation](https://developer.apple.com/documentation/xcode/adding-package-dependencies-to-your-app) for details.
 
 ## Usage
+
+First things first: add `import TreePicker` in your source code.
 
 You create a tree picker by providing a tree-structured data, `children` parameter that provides a key path to get the child nodes at any level, selection binding, a label that describes the purpose of selecting an option and a row content. For ``TreeOptionalPicker`` and ``TreeMultiPicker`` you can specify a view that represent empty selection value.
 

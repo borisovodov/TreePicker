@@ -60,21 +60,9 @@ import SwiftUI
 /// When select a row in a tree, depending on the type of `SelectionValue`, either the object itself add to the set of selection values or the value of it's identifier.
 ///
 /// ### Selection methods
-/// You can allow all nodes selection or only leaves. For this you need to specify `selectionMethod` parameter. By default parameter equal ``SelectionMethod/leafNodes`` value. It means that only node without children will be selectable. If choose ``SelectionMethod/independent`` value, all nodes (include *folders*) will be selectable. For cascading selection of option children you need to use ``SelectionMethod/cascading`` value.
+/// You can allow all nodes selection or only leaves. For this you need to specify `selectionMethod` parameter. By default parameter equal ``MultiSelectionMethod/leafNodes`` value. It means that only node without children will be selectable. If choose ``MultiSelectionMethod/independent`` value, all nodes (include *folders*) will be selectable. For cascading selection of option children you need to use ``MultiSelectionMethod/cascading`` value.
 @available(macOS 13.0, iOS 16.0, visionOS 1.0, *)
 @MainActor public struct TreeMultiPicker<Label: View, SelectionValue: Hashable, Data: RandomAccessCollection, ID: Hashable, RowContent: View, EmptySelectionContent: View> : View {
-    
-    /// The method of nodes selection.
-    public enum SelectionMethod {
-        /// The method in which only leaf nodes of the tree are selectable.
-        case leafNodes
-        
-        /// The method in which all tree nodes are independently selectable.
-        case independent
-        
-        /// The method in which all tree nodes are selectable and selecting a node automatically selects all its child nodes.
-        case cascading
-    }
     
     /// The data for populating the list.
     private var data: Data
@@ -89,7 +77,7 @@ import SwiftUI
     private var selection: Binding<Set<SelectionValue>>
     
     /// The method of nodes selection in tree.
-    private var selectionMethod: SelectionMethod
+    private var selectionMethod: MultiSelectionMethod
     
     /// A view builder that creates the view for a single row in pickers options.
     private var rowContent: (Data.Element) -> RowContent
@@ -287,7 +275,7 @@ extension TreeMultiPicker where Data.Element: Identifiable, ID == Data.Element.I
     ///   - selection: A binding to a set that identifies selected options.
     ///   - selectionMethod: The method of selecting options.
     ///   - rowContent: A view builder that creates the view for a single option.
-    @MainActor public init(_ titleKey: LocalizedStringKey, data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectionMethod: SelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Label == Text, EmptySelectionContent == Text {
+    @MainActor public init(_ titleKey: LocalizedStringKey, data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectionMethod: MultiSelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Label == Text, EmptySelectionContent == Text {
         self.data = data
         self.dataID = \.id
         self.children = children
@@ -308,7 +296,7 @@ extension TreeMultiPicker where Data.Element: Identifiable, ID == Data.Element.I
     ///   - selectionMethod: The method of selecting options.
     ///   - rowContent: A view builder that creates the view for a single option.
     ///   - emptySelectionContent: A view that represents an empty selection.
-    @MainActor public init(_ titleKey: LocalizedStringKey, data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectionMethod: SelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder emptySelectionContent: () -> EmptySelectionContent) where Label == Text {
+    @MainActor public init(_ titleKey: LocalizedStringKey, data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectionMethod: MultiSelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder emptySelectionContent: () -> EmptySelectionContent) where Label == Text {
         self.data = data
         self.dataID = \.id
         self.children = children
@@ -328,7 +316,7 @@ extension TreeMultiPicker where Data.Element: Identifiable, ID == Data.Element.I
     ///   - selection: A binding to a set that identifies selected options.
     ///   - selectionMethod: The method of selecting options.
     ///   - rowContent: A view builder that creates the view for a single option.
-    @MainActor public init<S>(_ title: S, data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectionMethod: SelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where S: StringProtocol, Label == Text, EmptySelectionContent == Text {
+    @MainActor public init<S>(_ title: S, data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectionMethod: MultiSelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where S: StringProtocol, Label == Text, EmptySelectionContent == Text {
         self.data = data
         self.dataID = \.id
         self.children = children
@@ -349,7 +337,7 @@ extension TreeMultiPicker where Data.Element: Identifiable, ID == Data.Element.I
     ///   - selectionMethod: The method of selecting options.
     ///   - rowContent: A view builder that creates the view for a single option.
     ///   - emptySelectionContent: A view that represents an empty selection.
-    @MainActor public init<S>(_ title: S, data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectionMethod: SelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder emptySelectionContent: () -> EmptySelectionContent) where S: StringProtocol, Label == Text {
+    @MainActor public init<S>(_ title: S, data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectionMethod: MultiSelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder emptySelectionContent: () -> EmptySelectionContent) where S: StringProtocol, Label == Text {
         self.data = data
         self.dataID = \.id
         self.children = children
@@ -369,7 +357,7 @@ extension TreeMultiPicker where Data.Element: Identifiable, ID == Data.Element.I
     ///   - selectionMethod: The method of selecting options.
     ///   - rowContent: A view builder that creates the view for a single option.
     ///   - label: A view that describes the purpose of options selecting.
-    @MainActor public init(data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectionMethod: SelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder label: () -> Label) where EmptySelectionContent == Text {
+    @MainActor public init(data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectionMethod: MultiSelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder label: () -> Label) where EmptySelectionContent == Text {
         self.data = data
         self.dataID = \.id
         self.children = children
@@ -390,7 +378,7 @@ extension TreeMultiPicker where Data.Element: Identifiable, ID == Data.Element.I
     ///   - rowContent: A view builder that creates the view for a single option.
     ///   - label: A view that describes the purpose of options selecting.
     ///   - emptySelectionContent: A view that represents an empty selection.
-    @MainActor public init(data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectionMethod: SelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder label: () -> Label, @ViewBuilder emptySelectionContent: () -> EmptySelectionContent) {
+    @MainActor public init(data: Data, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectionMethod: MultiSelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder label: () -> Label, @ViewBuilder emptySelectionContent: () -> EmptySelectionContent) {
         self.data = data
         self.dataID = \.id
         self.children = children
@@ -414,7 +402,7 @@ extension TreeMultiPicker {
     ///   - selection: A binding to a set that identifies selected options.
     ///   - selectionMethod: The method of selecting options.
     ///   - rowContent: A view builder that creates the view for a single option.
-    @MainActor public init(_ titleKey: LocalizedStringKey, data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectionMethod: SelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Label == Text, EmptySelectionContent == Text {
+    @MainActor public init(_ titleKey: LocalizedStringKey, data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectionMethod: MultiSelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where Label == Text, EmptySelectionContent == Text {
         self.data = data
         self.dataID = id
         self.children = children
@@ -436,7 +424,7 @@ extension TreeMultiPicker {
     ///   - selectionMethod: The method of selecting options.
     ///   - rowContent: A view builder that creates the view for a single option.
     ///   - emptySelectionContent: A view that represents an empty selection.
-    @MainActor public init(_ titleKey: LocalizedStringKey, data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectionMethod: SelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder emptySelectionContent: () -> EmptySelectionContent) where Label == Text {
+    @MainActor public init(_ titleKey: LocalizedStringKey, data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectionMethod: MultiSelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder emptySelectionContent: () -> EmptySelectionContent) where Label == Text {
         self.data = data
         self.dataID = id
         self.children = children
@@ -457,7 +445,7 @@ extension TreeMultiPicker {
     ///   - selection: A binding to a set that identifies selected options.
     ///   - selectionMethod: The method of selecting options.
     ///   - rowContent: A view builder that creates the view for a single option.
-    @MainActor public init<S>(_ title: S, data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectionMethod: SelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where S: StringProtocol, Label == Text, EmptySelectionContent == Text {
+    @MainActor public init<S>(_ title: S, data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectionMethod: MultiSelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) where S: StringProtocol, Label == Text, EmptySelectionContent == Text {
         self.data = data
         self.dataID = id
         self.children = children
@@ -479,7 +467,7 @@ extension TreeMultiPicker {
     ///   - selectionMethod: The method of selecting options.
     ///   - rowContent: A view builder that creates the view for a single option.
     ///   - emptySelectionContent: A view that represents an empty selection.
-    @MainActor public init<S>(_ title: S, data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectionMethod: SelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder emptySelectionContent: () -> EmptySelectionContent) where S: StringProtocol, Label == Text {
+    @MainActor public init<S>(_ title: S, data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectionMethod: MultiSelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder emptySelectionContent: () -> EmptySelectionContent) where S: StringProtocol, Label == Text {
         self.data = data
         self.dataID = id
         self.children = children
@@ -500,7 +488,7 @@ extension TreeMultiPicker {
     ///   - selectionMethod: The method of selecting options.
     ///   - rowContent: A view builder that creates the view for a single option.
     ///   - label: A view that describes the purpose of options selecting.
-    @MainActor public init(data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectionMethod: SelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder label: () -> Label) where EmptySelectionContent == Text {
+    @MainActor public init(data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectionMethod: MultiSelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder label: () -> Label) where EmptySelectionContent == Text {
         self.data = data
         self.dataID = id
         self.children = children
@@ -522,7 +510,7 @@ extension TreeMultiPicker {
     ///   - rowContent: A view builder that creates the view for a single option.
     ///   - label: A view that describes the purpose of options selecting.
     ///   - emptySelectionContent: A view that represents an empty selection.
-    @MainActor public init(data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectionMethod: SelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder label: () -> Label, @ViewBuilder emptySelectionContent: () -> EmptySelectionContent) {
+    @MainActor public init(data: Data, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectionMethod: MultiSelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent, @ViewBuilder label: () -> Label, @ViewBuilder emptySelectionContent: () -> EmptySelectionContent) {
         self.data = data
         self.dataID = id
         self.children = children

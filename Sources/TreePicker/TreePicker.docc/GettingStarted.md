@@ -84,7 +84,7 @@ When select a row in a tree, depending on the type of `SelectionValue`, either t
 
 ### Selection methods
 
-You can allow all nodes selection or only leaves. For this you need to specify `selectionMethod` parameter. By default parameter equal `leafNodes` value. It means that only node without children will be selectable. If choose `nodes` value (``TreeMultiPicker/SelectionMethod/independent`` for ``TreeMultiPicker``), all nodes (include *folders*) will be selectable. For cascading selection of option children in ``TreeMultiPicker`` you need to use ``TreeMultiPicker/SelectionMethod/cascading`` value. Create multi picker with cascading selection method for example:
+You can allow all nodes selection or only leaves. For this you need to specify `selectionMethod` parameter. By default parameter equal ``SelectionMethod/leafNodes`` value (``MultiSelectionMethod/leafNodes`` for ``TreeMultiPicker``). It means that only node without children will be selectable. If choose ``SelectionMethod/nodes`` value (``MultiSelectionMethod/independent`` for ``TreeMultiPicker``), all nodes (include *folders*) will be selectable. For cascading selection of option children in ``TreeMultiPicker`` you need to use ``MultiSelectionMethod/cascading`` value. Create multi picker with cascading selection method for example:
 
 ```swift
 TreeMultiPicker("Location", data: locations, children: \.children, selection: $multiSelection, selectionMethod: .cascading) { location in

@@ -9,6 +9,7 @@ import Foundation
 
 /// The method of nodes selection.
 public enum SelectionMethod {
+    
     /// The method in which only leaf nodes of the tree are selectable.
     case leafNodes
     
@@ -18,6 +19,7 @@ public enum SelectionMethod {
 
 /// The method of multiple nodes selection.
 public enum MultiSelectionMethod {
+    
     /// The method in which only leaf nodes of the tree are selectable.
     case leafNodes
     

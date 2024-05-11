@@ -4,13 +4,15 @@ Create tree pickers.
 
 ## Installation
 
-### In Xcode
+Add next row in your `Package.swift` file `dependencies` section:
 
-Open `.xcproject` file → click `PROJECT` → `Package Dependencies` → `+` → type `https://github.com/borisovodov/TreePicker` in the search field → click `Add Package`
+`.package(url: "https://github.com/borisovodov/TreePicker.git", from: "0.1.0")`.
 
-After that add `import TreePicker` in your source code.
+Alternatively you can add package dependency in Xcode. For that open `.xcproject` file → click `PROJECT` → `Package Dependencies` → `+` → type `https://github.com/borisovodov/TreePicker` in the search field → click `Add Package`. See the Xcode [documentation](https://developer.apple.com/documentation/xcode/adding-package-dependencies-to-your-app) for details.
 
 ## Usage
+
+First things first: add `import TreePicker` in your source code.
 
 You create a tree picker by providing a tree-structured data, `children` parameter that provides a key path to get the child nodes at any level, selection binding, a label that describes the purpose of selecting an option and a row content. For ``TreeOptionalPicker`` and ``TreeMultiPicker`` you can specify a view that represent empty selection value.
 
@@ -84,7 +86,7 @@ When select a row in a tree, depending on the type of `SelectionValue`, either t
 
 ### Selection methods
 
-You can allow all nodes selection or only leaves. For this you need to specify `selectionMethod` parameter. By default parameter equal `leafNodes` value. It means that only node without children will be selectable. If choose `nodes` value (``TreeMultiPicker/SelectionMethod/independent`` for ``TreeMultiPicker``), all nodes (include *folders*) will be selectable. For cascading selection of option children in ``TreeMultiPicker`` you need to use ``TreeMultiPicker/SelectionMethod/cascading`` value. Create multi picker with cascading selection method for example:
+You can allow all nodes selection or only leaves. For this you need to specify `selectionMethod` parameter. By default parameter equal ``SelectionMethod/leafNodes`` value (``MultiSelectionMethod/leafNodes`` for ``TreeMultiPicker``). It means that only node without children will be selectable. If choose ``SelectionMethod/nodes`` value (``MultiSelectionMethod/independent`` for ``TreeMultiPicker``), all nodes (include *folders*) will be selectable. For cascading selection of option children in ``TreeMultiPicker`` you need to use ``MultiSelectionMethod/cascading`` value. Create multi picker with cascading selection method for example:
 
 ```swift
 TreeMultiPicker("Location", data: locations, children: \.children, selection: $multiSelection, selectionMethod: .cascading) { location in

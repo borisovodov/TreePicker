@@ -64,15 +64,6 @@ import SwiftUI
 @available(macOS 13.0, iOS 16.0, visionOS 1.0, *)
 @MainActor public struct TreeSinglePicker<Label: View, SelectionValue: Hashable, Data: RandomAccessCollection, ID: Hashable, RowContent: View> : View {
     
-    /// The method of nodes selection.
-    public enum SelectionMethod {
-        /// The method in which only leaf nodes of the tree are selectable.
-        case leafNodes
-        
-        /// The method in which all tree nodes are selectable.
-        case nodes
-    }
-    
     /// The data for populating the list.
     private var data: Data
     

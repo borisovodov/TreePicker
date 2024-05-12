@@ -85,8 +85,12 @@ import SwiftUI
     /// A view that describes the purpose of selecting an option.
     private var label: Label
     
+    /// The property that store options list state.
+    @State private var isOptionsListDisplayed: Bool = false
+    
     /// The content and behavior of the view.
     @MainActor public var body: some View {
+#if os(iOS)
         NavigationLink {
             Form {
                 OutlineGroup(self.data, id: self.dataID, children: self.children) { dataElement in
@@ -100,6 +104,29 @@ import SwiftUI
                 self.label
             }
         }
+#elseif os(macOS)
+        LabeledContent {
+            Button(action: { self.openOptionsList() }) {
+                HStack(spacing: 0) {
+                    self.selectedOption
+                    Spacer()
+                    Image(systemName: "chevron.down.square.fill")
+                        .padding(.trailing, -4)
+                        .symbolRenderingMode(.multicolor)
+                        .foregroundStyle(Color.accentColor)
+                        .font(.body.bold())
+                        .shadow(radius: 2)
+                }
+            }
+            .popover(isPresented: self.$isOptionsListDisplayed) {
+                OutlineGroup(self.data, id: self.dataID, children: self.children) { dataElement in
+                    self.outlineGroupRow(dataElement)
+                }
+            }
+        } label: {
+            self.label
+        }
+#endif
     }
     
     @ViewBuilder private var selectedOption: some View {
@@ -148,6 +175,14 @@ import SwiftUI
             }
             .buttonStyle(.plain)
         }
+    }
+    
+    private func openOptionsList() {
+        self.isOptionsListDisplayed = true
+    }
+    
+    private func closeOptionsList() {
+        self.isOptionsListDisplayed = false
     }
     
     private func recursivelyFindSelectedDataElement(from parent: Data.Element) -> Data.Element? {

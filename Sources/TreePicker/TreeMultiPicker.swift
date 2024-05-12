@@ -109,7 +109,7 @@ import SwiftUI
         }
 #elseif os(macOS)
         LabeledContent {
-            Button(action: { self.openOptionsList() }, label: {
+            Button(action: { self.openOptionsList() }) {
                 HStack(spacing: 0) {
                     self.selectedOptions
                     Spacer()
@@ -120,7 +120,7 @@ import SwiftUI
                         .font(.body.bold())
                         .shadow(radius: 2)
                 }
-            })
+            }
             .popover(isPresented: self.$isOptionsListDisplayed) {
                 OutlineGroup(self.data, id: self.dataID, children: self.children) { dataElement in
                     self.outlineGroupRow(dataElement)

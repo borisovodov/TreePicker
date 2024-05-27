@@ -7,7 +7,7 @@
 
 import Foundation
 
-func recursivelyHandleDataElementAndChildren<Data>(from parent: Data.Element, children childrenID: KeyPath<Data.Element, Data?>, action: (Data.Element) -> Void) where Data : RandomAccessCollection {
+internal func recursivelyHandleDataElementAndChildren<Data>(from parent: Data.Element, children childrenID: KeyPath<Data.Element, Data?>, action: (Data.Element) -> Void) where Data : RandomAccessCollection {
     action(parent)
     
     guard let children = parent[keyPath: childrenID] else {

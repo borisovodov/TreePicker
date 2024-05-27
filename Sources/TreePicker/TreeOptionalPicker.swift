@@ -95,39 +95,38 @@ import SwiftUI
     @MainActor public var body: some View {
 #if os(iOS)
         NavigationLink {
-            Form {
-                OutlineGroup(self.data, id: self.dataID, children: self.children) { dataElement in
-                    TreeNode(dataElement: dataElement, id: self.dataID, children: self.children, selection: self.selection, selectionMethod: self.selectionMethod, rowContent: self.rowContent)
-                }
-            }
+            self.menu
         } label: {
             LabeledContent {
-                self.selectedOption
+                self.labelContent
             } label: {
                 self.label
             }
         }
 #elseif os(macOS)
         LabeledContent {
-            Button(action: { self.openOptionsList() }) {
-                HStack(spacing: 0) {
-                    self.selectedOption
-                    Spacer()
-                    Image(systemName: "chevron.down.square.fill")
-                        .padding(.trailing, -4)
-                        .symbolRenderingMode(.multicolor)
-                        .foregroundStyle(Color.accentColor)
-                        .font(.body.bold())
-                        .shadow(radius: 2)
-                }
-            }
-            .popover(isPresented: self.$isOptionsListDisplayed) {
-                OutlineGroup(self.data, id: self.dataID, children: self.children) { dataElement in
-                    TreeNode(dataElement: dataElement, id: self.dataID, children: self.children, selection: self.selection, selectionMethod: self.selectionMethod, rowContent: self.rowContent)
-                }
-            }
+            self.labelContent
         } label: {
             self.label
+        }
+#endif
+    }
+    
+    @ViewBuilder private var labelContent: some View {
+#if os(iOS)
+        self.selectedOption
+#elseif os(macOS)
+        Button(action: { self.openOptionsList() }) {
+            HStack(spacing: 0) {
+                self.selectedOption
+                
+                Spacer()
+                
+                LabelChevron()
+            }
+        }
+        .popover(isPresented: self.$isOptionsListDisplayed, arrowEdge: .bottom) {
+            self.menu
         }
 #endif
     }
@@ -137,6 +136,14 @@ import SwiftUI
             self.rowContent(dataElement)
         } else {
             self.emptySelectionContent
+        }
+    }
+    
+    @ViewBuilder private var menu: some View {
+        List {
+            OutlineGroup(self.data, id: self.dataID, children: self.children) { dataElement in
+                TreeNode(dataElement: dataElement, id: self.dataID, children: self.children, selection: self.selection, selectionMethod: self.selectionMethod, rowContent: self.rowContent)
+            }
         }
     }
     

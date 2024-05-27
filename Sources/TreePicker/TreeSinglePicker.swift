@@ -92,56 +92,43 @@ import SwiftUI
     @MainActor public var body: some View {
 #if os(iOS)
         NavigationLink {
-            Form {
-                OutlineGroup(self.data, id: self.dataID, children: self.children) { dataElement in
-                    TreeNode(dataElement: dataElement, id: self.dataID, children: self.children, selection: self.selection, selectionMethod: self.selectionMethod, rowContent: self.rowContent)
-                }
-            }
+            self.menu
         } label: {
             LabeledContent {
-                self.selectedOption
+                self.labelContent
             } label: {
                 self.label
             }
         }
 #elseif os(macOS)
-        VStack {
-            LabeledContent {
-                Button(action: { self.openOptionsList() }) {
-                    HStack(spacing: 0) {
-                        self.selectedOption
-                        Spacer()
-                        Image(systemName: "chevron.down.square.fill")
-                            .padding(.trailing, -4)
-                            .symbolRenderingMode(.multicolor)
-                            .foregroundStyle(Color.accentColor)
-                            .font(.body.bold())
-                            .shadow(radius: 2)
-                    }
-                }
-                // TODO: https://stackoverflow.com/questions/78201062/ios-swiftui-need-to-display-popover-without-arrow
-                // TODO: On macOS you fall back to using an AppKit solution, wrapped in NSViewRepresentable (or NSViewControllerRepresentable).: https://forums.developer.apple.com/forums/thread/676190
-                // TODO: https://developer.apple.com/documentation/appkit/nspopupbutton/arrowposition/noarrow
-                // TODO: https://serialcoder.dev/text-tutorials/macos-tutorials/popup-and-pull-down-buttons-in-appkit/
-                // TODO: https://stackoverflow.com/questions/68744895/swift-ui-macos-menubar-nspopover-no-arrow
-                //            .popover(isPresented: self.$isOptionsListDisplayed, arrowEdge: .bottom) {
-                //                ScrollView {
-                //                    OutlineGroup(self.data, id: self.dataID, children: self.children) { dataElement in
-                //                        TreeNode(dataElement: dataElement, id: self.dataID, children: self.children, selection: self.selection, selectionMethod: self.selectionMethod, rowContent: self.rowContent)
-                //                    }
-                //                }
-                //                .scrollIndicators(.hidden)
-                //                .padding()
-                //                // TODO: ширина должна совпадать с шириной самого лэйбла и так всегда.
-                //                .frame(maxWidth: 300, maxHeight: 300)
-                //            }
-            } label: {
-                self.label
+        LabeledContent {
+            self.labelContent
+        } label: {
+            self.label
+        }
+#endif
+    }
+    
+    @ViewBuilder private var labelContent: some View {
+#if os(iOS)
+        self.selectedOption
+#elseif os(macOS)
+        Button(action: { self.openOptionsList() }) {
+            HStack(spacing: 0) {
+                self.selectedOption
+                
+                Spacer()
+                
+                LabelChevron()
             }
-            
-            OutlineGroup(self.data, id: self.dataID, children: self.children) { dataElement in
-                TreeNode(dataElement: dataElement, id: self.dataID, children: self.children, selection: self.selection, selectionMethod: self.selectionMethod, rowContent: self.rowContent)
-            }
+        }
+        // TODO: https://stackoverflow.com/questions/78201062/ios-swiftui-need-to-display-popover-without-arrow
+        // TODO: On macOS you fall back to using an AppKit solution, wrapped in NSViewRepresentable (or NSViewControllerRepresentable).: https://forums.developer.apple.com/forums/thread/676190
+        // TODO: https://developer.apple.com/documentation/appkit/nspopupbutton/arrowposition/noarrow
+        // TODO: https://serialcoder.dev/text-tutorials/macos-tutorials/popup-and-pull-down-buttons-in-appkit/
+        // TODO: https://stackoverflow.com/questions/68744895/swift-ui-macos-menubar-nspopover-no-arrow
+        .popover(isPresented: self.$isOptionsListDisplayed, arrowEdge: .bottom) {
+            self.menu
         }
 #endif
     }
@@ -149,6 +136,14 @@ import SwiftUI
     @ViewBuilder private var selectedOption: some View {
         if let dataElement = self.selectedDataElement {
             self.rowContent(dataElement)
+        }
+    }
+    
+    @ViewBuilder private var menu: some View {
+        List {
+            OutlineGroup(self.data, id: self.dataID, children: self.children) { dataElement in
+                TreeNode(dataElement: dataElement, id: self.dataID, children: self.children, selection: self.selection, selectionMethod: self.selectionMethod, rowContent: self.rowContent)
+            }
         }
     }
     

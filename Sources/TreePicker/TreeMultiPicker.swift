@@ -97,7 +97,7 @@ import SwiftUI
         NavigationLink {
             Form {
                 OutlineGroup(self.data, id: self.dataID, children: self.children) { dataElement in
-                    self.outlineGroupRow(dataElement)
+                    TreeNode(dataElement: dataElement, id: self.dataID, children: self.children, selection: self.selection, selectionMethod: self.selectionMethod, rowContent: self.rowContent)
                 }
             }
         } label: {
@@ -123,7 +123,7 @@ import SwiftUI
             }
             .popover(isPresented: self.$isOptionsListDisplayed) {
                 OutlineGroup(self.data, id: self.dataID, children: self.children) { dataElement in
-                    self.outlineGroupRow(dataElement)
+                    TreeNode(dataElement: dataElement, id: self.dataID, children: self.children, selection: self.selection, selectionMethod: self.selectionMethod, rowContent: self.rowContent)
                 }
             }
         } label: {
@@ -159,7 +159,7 @@ import SwiftUI
         
         if SelectionValue.self == ID.self {
             for dataElement in self.data {
-                self.recursivelyHandleDataElementAndChildren(from: dataElement) { dataElement in
+                recursivelyHandleDataElementAndChildren(from: dataElement, children: self.children) { dataElement in
                     for selectedValue in self.selection.wrappedValue {
                         if dataElement[keyPath: self.dataID] as? SelectionValue == selectedValue {
                             selection.append(dataElement)
@@ -174,128 +174,12 @@ import SwiftUI
         return selection
     }
     
-    @ViewBuilder private func outlineGroupRow(_ dataElement: Data.Element) -> some View {
-        if self.isSelectable(dataElement) {
-            self.selectableRow(dataElement)
-        } else {
-            self.rowContent(dataElement)
-        }
-    }
-    
-    @ViewBuilder private func selectableRow(_ dataElement: Data.Element) -> some View {
-        HStack {
-            if self.isSelected(dataElement) {
-                Image(systemName: "checkmark")
-                    .foregroundStyle(Color.accentColor)
-            }
-            
-            Button(action: { self.select(dataElement) }) {
-                HStack {
-                    self.rowContent(dataElement)
-                    Spacer()
-                }
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-        }
-    }
-    
     private func openOptionsList() {
         self.isOptionsListDisplayed = true
     }
     
     private func closeOptionsList() {
         self.isOptionsListDisplayed = false
-    }
-    
-    private func recursivelyHandleDataElementAndChildren(from parent: Data.Element, action: (Data.Element) -> Void) {
-        action(parent)
-        
-        guard let children = parent[keyPath: self.children] else {
-            return
-        }
-        
-        for child in children {
-            self.recursivelyHandleDataElementAndChildren(from: child) { child in
-                action(child)
-            }
-        }
-    }
-    
-    private func isSelectable(_ dataElement: Data.Element) -> Bool {
-        switch self.selectionMethod {
-        case .leafNodes:
-            if dataElement[keyPath: self.children] == nil {
-                return true
-            } else {
-                return false
-            }
-        case .independent:
-            return true
-        case .cascading:
-            return true
-        }
-    }
-    
-    private func isSelected(_ dataElement: Data.Element) -> Bool {
-        // If selection has same type as `Data.Element` then compare selection and `Data.Element`.
-        if let dataElement = dataElement as? SelectionValue {
-            return self.selection.wrappedValue.contains(dataElement)
-        }
-        
-        // If selection has same type as `Data.Element.ID` then compare selection and `Data.Element.ID`.
-        if let dataElementID = dataElement[keyPath: self.dataID] as? SelectionValue {
-            return self.selection.wrappedValue.contains(dataElementID)
-        }
-        
-        // Return `false` if selection has different type or dataElement isn't selected.
-        return false
-    }
-    
-    private func select(_ dataElement: Data.Element) {
-        if self.isSelected(dataElement) {
-            switch self.selectionMethod {
-            case .cascading:
-                self.recursivelyHandleDataElementAndChildren(from: dataElement) { dataElement in
-                    self.removeSelection(dataElement)
-                }
-            default:
-                self.removeSelection(dataElement)
-            }
-        } else {
-            switch self.selectionMethod {
-            case .cascading:
-                self.recursivelyHandleDataElementAndChildren(from: dataElement) { dataElement in
-                    self.insertSelection(dataElement)
-                }
-            default:
-                self.insertSelection(dataElement)
-            }
-        }
-    }
-    
-    private func removeSelection(_ dataElement: Data.Element) {
-        if let dataElement = dataElement as? SelectionValue {
-            self.selection.wrappedValue.remove(dataElement)
-            return
-        }
-        
-        if let dataElementID = dataElement[keyPath: self.dataID] as? SelectionValue {
-            self.selection.wrappedValue.remove(dataElementID)
-            return
-        }
-    }
-    
-    private func insertSelection(_ dataElement: Data.Element) {
-        if let dataElement = dataElement as? SelectionValue {
-            self.selection.wrappedValue.insert(dataElement)
-            return
-        }
-        
-        if let dataElementID = dataElement[keyPath: self.dataID] as? SelectionValue {
-            self.selection.wrappedValue.insert(dataElementID)
-            return
-        }
     }
 }
 
@@ -554,5 +438,131 @@ extension TreeMultiPicker {
         self.rowContent = rowContent
         self.emptySelectionContent = emptySelectionContent()
         self.label = label()
+    }
+    
+    @MainActor internal struct TreeNode: View {
+        
+        private var dataID: KeyPath<Data.Element, ID>
+        
+        private var dataElement: Data.Element
+        
+        private var children: KeyPath<Data.Element, Data?>
+        
+        private var selection: Binding<Set<SelectionValue>>
+        
+        private var selectionMethod: MultiSelectionMethod
+        
+        private var rowContent: (Data.Element) -> RowContent
+        
+        @MainActor var body: some View {
+            if self.isSelectable {
+                self.selectableRow
+            } else {
+                self.rowContent(self.dataElement)
+            }
+        }
+        
+        @ViewBuilder private var selectableRow: some View {
+            HStack {
+                if self.isSelected {
+                    Image(systemName: "checkmark")
+                        .foregroundStyle(Color.accentColor)
+                }
+                
+                Button(action: { self.select() }) {
+                    HStack {
+                        self.rowContent(self.dataElement)
+                        Spacer()
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        
+        private var isSelectable: Bool {
+            switch self.selectionMethod {
+            case .leafNodes:
+                if self.dataElement[keyPath: self.children] == nil {
+                    return true
+                } else {
+                    return false
+                }
+            case .independent:
+                return true
+            case .cascading:
+                return true
+            }
+        }
+        
+        private var isSelected: Bool {
+            // If selection has same type as `Data.Element` then compare selection and `Data.Element`.
+            if let dataElement = self.dataElement as? SelectionValue {
+                return self.selection.wrappedValue.contains(dataElement)
+            }
+            
+            // If selection has same type as `Data.Element.ID` then compare selection and `Data.Element.ID`.
+            if let dataElementID = self.dataElement[keyPath: self.dataID] as? SelectionValue {
+                return self.selection.wrappedValue.contains(dataElementID)
+            }
+            
+            // Return `false` if selection has different type or dataElement isn't selected.
+            return false
+        }
+        
+        private func select() {
+            if self.isSelected {
+                switch self.selectionMethod {
+                case .cascading:
+                    recursivelyHandleDataElementAndChildren(from: self.dataElement, children: self.children) { dataElement in
+                        self.removeSelection(dataElement)
+                    }
+                default:
+                    self.removeSelection(self.dataElement)
+                }
+            } else {
+                switch self.selectionMethod {
+                case .cascading:
+                    recursivelyHandleDataElementAndChildren(from: self.dataElement, children: self.children) { dataElement in
+                        self.insertSelection(dataElement)
+                    }
+                default:
+                    self.insertSelection(self.dataElement)
+                }
+            }
+        }
+        
+        private func removeSelection(_ dataElement: Data.Element) {
+            if let dataElement = dataElement as? SelectionValue {
+                self.selection.wrappedValue.remove(dataElement)
+                return
+            }
+            
+            if let dataElementID = dataElement[keyPath: self.dataID] as? SelectionValue {
+                self.selection.wrappedValue.remove(dataElementID)
+                return
+            }
+        }
+        
+        private func insertSelection(_ dataElement: Data.Element) {
+            if let dataElement = dataElement as? SelectionValue {
+                self.selection.wrappedValue.insert(dataElement)
+                return
+            }
+            
+            if let dataElementID = dataElement[keyPath: self.dataID] as? SelectionValue {
+                self.selection.wrappedValue.insert(dataElementID)
+                return
+            }
+        }
+        
+        @MainActor public init(dataElement: Data.Element, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<Set<SelectionValue>>, selectionMethod: MultiSelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) {
+            self.dataElement = dataElement
+            self.dataID = id
+            self.children = children
+            self.selection = selection
+            self.selectionMethod = selectionMethod
+            self.rowContent = rowContent
+        }
     }
 }

@@ -105,32 +105,43 @@ import SwiftUI
             }
         }
 #elseif os(macOS)
-        LabeledContent {
-            Button(action: { self.openOptionsList() }) {
-                HStack(spacing: 0) {
-                    self.selectedOption
-                    Spacer()
-                    Image(systemName: "chevron.down.square.fill")
-                        .padding(.trailing, -4)
-                        .symbolRenderingMode(.multicolor)
-                        .foregroundStyle(Color.accentColor)
-                        .font(.body.bold())
-                        .shadow(radius: 2)
-                }
-            }
-            .popover(isPresented: self.$isOptionsListDisplayed, arrowEdge: .bottom) {
-                ScrollView {
-                    OutlineGroup(self.data, id: self.dataID, children: self.children) { dataElement in
-                        TreeNode(dataElement: dataElement, id: self.dataID, children: self.children, selection: self.selection, selectionMethod: self.selectionMethod, rowContent: self.rowContent)
+        VStack {
+            LabeledContent {
+                Button(action: { self.openOptionsList() }) {
+                    HStack(spacing: 0) {
+                        self.selectedOption
+                        Spacer()
+                        Image(systemName: "chevron.down.square.fill")
+                            .padding(.trailing, -4)
+                            .symbolRenderingMode(.multicolor)
+                            .foregroundStyle(Color.accentColor)
+                            .font(.body.bold())
+                            .shadow(radius: 2)
                     }
                 }
-                .scrollIndicators(.hidden)
-                .padding()
-                // TODO: ширина должна совпадать с шириной самого лэйбла и так всегда.
-                .frame(maxWidth: 300, maxHeight: 300)
+                // TODO: https://stackoverflow.com/questions/78201062/ios-swiftui-need-to-display-popover-without-arrow
+                // TODO: On macOS you fall back to using an AppKit solution, wrapped in NSViewRepresentable (or NSViewControllerRepresentable).: https://forums.developer.apple.com/forums/thread/676190
+                // TODO: https://developer.apple.com/documentation/appkit/nspopupbutton/arrowposition/noarrow
+                // TODO: https://serialcoder.dev/text-tutorials/macos-tutorials/popup-and-pull-down-buttons-in-appkit/
+                // TODO: https://stackoverflow.com/questions/68744895/swift-ui-macos-menubar-nspopover-no-arrow
+                //            .popover(isPresented: self.$isOptionsListDisplayed, arrowEdge: .bottom) {
+                //                ScrollView {
+                //                    OutlineGroup(self.data, id: self.dataID, children: self.children) { dataElement in
+                //                        TreeNode(dataElement: dataElement, id: self.dataID, children: self.children, selection: self.selection, selectionMethod: self.selectionMethod, rowContent: self.rowContent)
+                //                    }
+                //                }
+                //                .scrollIndicators(.hidden)
+                //                .padding()
+                //                // TODO: ширина должна совпадать с шириной самого лэйбла и так всегда.
+                //                .frame(maxWidth: 300, maxHeight: 300)
+                //            }
+            } label: {
+                self.label
             }
-        } label: {
-            self.label
+            
+            OutlineGroup(self.data, id: self.dataID, children: self.children) { dataElement in
+                TreeNode(dataElement: dataElement, id: self.dataID, children: self.children, selection: self.selection, selectionMethod: self.selectionMethod, rowContent: self.rowContent)
+            }
         }
 #endif
     }
@@ -305,94 +316,94 @@ extension TreeSinglePicker {
         self.rowContent = rowContent
         self.label = label()
     }
-}
-
-@MainActor internal struct TreeNode<SelectionValue: Hashable, Data: RandomAccessCollection, ID: Hashable, RowContent: View> : View {
     
-    private var dataID: KeyPath<Data.Element, ID>
-    
-    private var dataElement: Data.Element
-    
-    private var children: KeyPath<Data.Element, Data?>
-    
-    private var selection: Binding<SelectionValue>
-    
-    private var selectionMethod: SelectionMethod
-    
-    private var rowContent: (Data.Element) -> RowContent
-    
-    var body: some View {
-        if self.isSelectable {
-            self.selectableRow
-        } else {
-            self.rowContent(self.dataElement)
+    @MainActor internal struct TreeNode: View {
+        
+        private var dataID: KeyPath<Data.Element, ID>
+        
+        private var dataElement: Data.Element
+        
+        private var children: KeyPath<Data.Element, Data?>
+        
+        private var selection: Binding<SelectionValue>
+        
+        private var selectionMethod: SelectionMethod
+        
+        private var rowContent: (Data.Element) -> RowContent
+        
+        @MainActor var body: some View {
+            if self.isSelectable {
+                self.selectableRow
+            } else {
+                self.rowContent(self.dataElement)
+            }
         }
-    }
-    
-    @ViewBuilder private var selectableRow: some View {
-        HStack {
-            if self.isSelected {
-                Image(systemName: "checkmark")
-                    .foregroundStyle(Color.accentColor)
+        
+        @ViewBuilder private var selectableRow: some View {
+            HStack {
+                if self.isSelected {
+                    Image(systemName: "checkmark")
+                        .foregroundStyle(Color.accentColor)
+                }
+                
+                Button(action: { self.select() }) {
+                    HStack {
+                        self.rowContent(self.dataElement)
+                        Spacer()
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        
+        private var isSelectable: Bool {
+            switch self.selectionMethod {
+            case .leafNodes:
+                if self.dataElement[keyPath: self.children] == nil {
+                    return true
+                } else {
+                    return false
+                }
+            case .nodes:
+                return true
+            }
+        }
+        
+        private var isSelected: Bool {
+            // If selection has same type as `Data.Element` then compare selection and `Data.Element`.
+            if let dataElement = self.dataElement as? SelectionValue {
+                return dataElement == self.selection.wrappedValue
             }
             
-            Button(action: { self.select() }) {
-                HStack {
-                    self.rowContent(self.dataElement)
-                    Spacer()
-                }
-                .contentShape(Rectangle())
+            // If selection has same type as `Data.Element.ID` then compare selection and `Data.Element.ID`.
+            if let dataElementID = self.dataElement[keyPath: self.dataID] as? SelectionValue {
+                return dataElementID == self.selection.wrappedValue
             }
-            .buttonStyle(.plain)
+            
+            // Return `false` if selection has different type or dataElement isn't selected.
+            return false
         }
-    }
-    
-    private var isSelectable: Bool {
-        switch self.selectionMethod {
-        case .leafNodes:
-            if self.dataElement[keyPath: self.children] == nil {
-                return true
-            } else {
-                return false
+        
+        private func select() {
+            if let dataElement = self.dataElement as? SelectionValue {
+                self.selection.wrappedValue = dataElement
+                return
             }
-        case .nodes:
-            return true
-        }
-    }
-    
-    private var isSelected: Bool {
-        // If selection has same type as `Data.Element` then compare selection and `Data.Element`.
-        if let dataElement = self.dataElement as? SelectionValue {
-            return dataElement == self.selection.wrappedValue
+            
+            if let dataElementID = self.dataElement[keyPath: self.dataID] as? SelectionValue {
+                self.selection.wrappedValue = dataElementID
+                return
+            }
         }
         
-        // If selection has same type as `Data.Element.ID` then compare selection and `Data.Element.ID`.
-        if let dataElementID = self.dataElement[keyPath: self.dataID] as? SelectionValue {
-            return dataElementID == self.selection.wrappedValue
+        @MainActor public init(dataElement: Data.Element, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue>, selectionMethod: SelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) {
+            self.dataElement = dataElement
+            self.dataID = id
+            self.children = children
+            self.selection = selection
+            self.selectionMethod = selectionMethod
+            self.rowContent = rowContent
         }
-        
-        // Return `false` if selection has different type or dataElement isn't selected.
-        return false
-    }
-    
-    private func select() {
-        if let dataElement = self.dataElement as? SelectionValue {
-            self.selection.wrappedValue = dataElement
-            return
-        }
-        
-        if let dataElementID = self.dataElement[keyPath: self.dataID] as? SelectionValue {
-            self.selection.wrappedValue = dataElementID
-            return
-        }
-    }
-    
-    @MainActor public init(dataElement: Data.Element, id: KeyPath<Data.Element, ID>, children: KeyPath<Data.Element, Data?>, selection: Binding<SelectionValue>, selectionMethod: SelectionMethod = .leafNodes, @ViewBuilder rowContent: @escaping (Data.Element) -> RowContent) {
-        self.dataElement = dataElement
-        self.dataID = id
-        self.children = children
-        self.selection = selection
-        self.selectionMethod = selectionMethod
-        self.rowContent = rowContent
     }
 }

@@ -1,4 +1,4 @@
-// swift-tools-version: 5.9
+// swift-tools-version: 6.0
 
 import PackageDescription
 
@@ -13,15 +13,18 @@ let package = Package(
     products: [
         .library(
             name: "TreePicker",
+            type: .static,
             targets: ["TreePicker"]),
     ],
     targets: [
         .target(
             name: "TreePicker",
-            resources: [.process("Resources")]
+            resources: [.process("Resources")],
         ),
         .testTarget(
             name: "TreePickerTests",
-            dependencies: ["TreePicker"]),
-    ]
+            dependencies: ["TreePicker"],
+        ),
+    ],
+    swiftLanguageModes: [.v6]
 )

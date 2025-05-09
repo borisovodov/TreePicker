@@ -6,7 +6,9 @@ Create tree pickers.
 
 Add next row in your `Package.swift` file `dependencies` section:
 
-`.package(url: "https://github.com/borisovodov/TreePicker.git", from: "0.1.0")`.
+```swift
+.package(url: "https://github.com/borisovodov/TreePicker.git", from: "0.1.0")
+```
 
 Alternatively you can add package dependency in Xcode. For that open `.xcproject` file → click `PROJECT` → `Package Dependencies` → `+` → type `https://github.com/borisovodov/TreePicker` in the search field → click `Add Package`. See the Xcode [documentation](https://developer.apple.com/documentation/xcode/adding-package-dependencies-to-your-app) for details.
 

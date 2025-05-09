@@ -1,8 +1,8 @@
-import XCTest
+import Testing
 @testable import TreePicker
 
-final class TreePickerTests: XCTestCase {
-    func testExample() throws {
+struct TreePickerTests {
+    @Test func example() throws {
         // XCTest Documentation
         // https://developer.apple.com/documentation/xctest
 

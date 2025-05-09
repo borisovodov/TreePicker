@@ -62,6 +62,8 @@ import SwiftUI
 /// ### Selection methods
 /// You can allow all nodes selection or only leaves. For this you need to specify `selectionMethod` parameter. By default parameter equal ``SelectionMethod/leafNodes`` value. It means that only node without children will be selectable. If choose ``SelectionMethod/nodes`` value, all nodes (include *folders*) will be selectable.
 @available(macOS 13.0, iOS 16.0, visionOS 1.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
 @MainActor public struct TreeOptionalPicker<Label: View, SelectionValue: Hashable, Data: RandomAccessCollection, ID: Hashable, RowContent: View, EmptySelectionContent: View> : View {
     
     /// The data for populating the list.
@@ -98,24 +100,22 @@ import SwiftUI
             self.menu
         } label: {
             LabeledContent {
-                self.labelContent
+                self.selectedOption
             } label: {
                 self.label
             }
         }
 #elseif os(macOS)
         LabeledContent {
-            self.labelContent
+            self.pullDownButton
         } label: {
             self.label
         }
 #endif
     }
     
-    @ViewBuilder private var labelContent: some View {
-#if os(iOS)
-        self.selectedOption
-#elseif os(macOS)
+#if os(macOS)
+    @ViewBuilder private var pullDownButton: some View {
         Button(action: { self.openOptionsList() }) {
             HStack(spacing: 0) {
                 self.selectedOption
@@ -128,8 +128,8 @@ import SwiftUI
         .popover(isPresented: self.$isOptionsListDisplayed, arrowEdge: .bottom) {
             self.menu
         }
-#endif
     }
+#endif
     
     @ViewBuilder private var selectedOption: some View {
         if let dataElement = self.selectedDataElement {
@@ -319,7 +319,7 @@ extension TreeOptionalPicker where Data.Element: Identifiable, ID == Data.Elemen
 extension TreeOptionalPicker {
     
     /// Creates a hierarchical picker that identifies its options based on a key path to the identifier of the underlying data, optionally allowing users to select a single element. Picker generates its label from a localized string key.
-    /// 
+    ///
     /// - Parameters:
     ///   - titleKey: A localized string key that describes the purpose of selecting an option.
     ///   - data: The data for populating options.
@@ -340,7 +340,7 @@ extension TreeOptionalPicker {
     }
     
     /// Creates a hierarchical picker that identifies its options based on a key path to the identifier of the underlying data, optionally allowing users to select a single element. Picker generates its label from a localized string key and displays a custom empty selection view.
-    /// 
+    ///
     /// - Parameters:
     ///   - titleKey: A localized string key that describes the purpose of selecting an option.
     ///   - data: The data for populating options.
@@ -362,7 +362,7 @@ extension TreeOptionalPicker {
     }
     
     /// Creates a hierarchical picker that identifies its options based on a key path to the identifier of the underlying data, optionally allowing users to select a single element. Picker generates its label from a string.
-    /// 
+    ///
     /// - Parameters:
     ///   - title: A string that describes the purpose of selecting an option.
     ///   - data: The data for populating options.
@@ -383,7 +383,7 @@ extension TreeOptionalPicker {
     }
     
     /// Creates a hierarchical picker that identifies its options based on a key path to the identifier of the underlying data, optionally allowing users to select a single element. Picker generates its label from a string and displays a custom empty selection view.
-    /// 
+    ///
     /// - Parameters:
     ///   - title: A string that describes the purpose of selecting an option.
     ///   - data: The data for populating options.
@@ -405,7 +405,7 @@ extension TreeOptionalPicker {
     }
     
     /// Creates a hierarchical picker that identifies its options based on a key path to the identifier of the underlying data, optionally allowing users to select a single element. Picker displays a custom label.
-    /// 
+    ///
     /// - Parameters:
     ///   - data: The data for populating options.
     ///   - id: The key path to the data model's identifier.
@@ -426,7 +426,7 @@ extension TreeOptionalPicker {
     }
     
     /// Creates a hierarchical picker that identifies its options based on a key path to the identifier of the underlying data, optionally allowing users to select a single element. Picker displays a custom label and a custom empty selection view.
-    /// 
+    ///
     /// - Parameters:
     ///   - data: The data for populating options.
     ///   - id: The key path to the data model's identifier.
@@ -446,6 +446,9 @@ extension TreeOptionalPicker {
         self.emptySelectionContent = emptySelectionContent()
         self.label = label()
     }
+}
+
+extension TreeOptionalPicker {
     
     @MainActor internal struct TreeNode: View {
         

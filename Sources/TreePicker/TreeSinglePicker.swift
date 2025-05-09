@@ -62,6 +62,8 @@ import SwiftUI
 /// ### Selection methods
 /// You can allow all nodes selection or only leaves. For this you need to specify `selectionMethod` parameter. By default parameter equal ``SelectionMethod/leafNodes`` value. It means that only node without children will be selectable. If choose ``SelectionMethod/nodes`` value, all nodes (include *folders*) will be selectable.
 @available(macOS 13.0, iOS 16.0, visionOS 1.0, *)
+@available(tvOS, unavailable)
+@available(watchOS, unavailable)
 @MainActor public struct TreeSinglePicker<Label: View, SelectionValue: Hashable, Data: RandomAccessCollection, ID: Hashable, RowContent: View> : View {
     
     /// The data for populating the list.
@@ -88,6 +90,12 @@ import SwiftUI
     /// The property that store options list state.
     @State private var isOptionsListDisplayed: Bool = false
     
+#if os(macOS)
+    /// ???
+    @Namespace private var popoverNamespace
+    @State private var selectedIndex: Int = 0
+#endif
+    
     /// The content and behavior of the view.
     @MainActor public var body: some View {
 #if os(iOS)
@@ -95,24 +103,22 @@ import SwiftUI
             self.menu
         } label: {
             LabeledContent {
-                self.labelContent
+                self.selectedOption
             } label: {
                 self.label
             }
         }
 #elseif os(macOS)
         LabeledContent {
-            self.labelContent
+            self.pullDownButton
         } label: {
             self.label
         }
 #endif
     }
     
-    @ViewBuilder private var labelContent: some View {
-#if os(iOS)
-        self.selectedOption
-#elseif os(macOS)
+#if os(macOS)
+    @ViewBuilder private var pullDownButton: some View {
         Button(action: { self.openOptionsList() }) {
             HStack(spacing: 0) {
                 self.selectedOption
@@ -130,8 +136,8 @@ import SwiftUI
         .popover(isPresented: self.$isOptionsListDisplayed, arrowEdge: .bottom) {
             self.menu
         }
-#endif
     }
+#endif
     
     @ViewBuilder private var selectedOption: some View {
         if let dataElement = self.selectedDataElement {
@@ -273,7 +279,7 @@ extension TreeSinglePicker {
     }
     
     /// Creates a hierarchical picker that identifies its options based on a key path to the identifier of the underlying data and allowing users to have exactly one option always selected. Picker generates its label from a string.
-    /// 
+    ///
     /// - Parameters:
     ///   - title: A string that describes the purpose of selecting an option.
     ///   - data: The data for populating options.
@@ -293,7 +299,7 @@ extension TreeSinglePicker {
     }
     
     /// Creates a hierarchical picker that identifies its options based on a key path to the identifier of the underlying data and allowing users to have exactly one option always selected. Picker displays a custom label.
-    /// 
+    ///
     /// - Parameters:
     ///   - data: The data for populating options.
     ///   - id: The key path to the data model's identifier.
@@ -311,6 +317,9 @@ extension TreeSinglePicker {
         self.rowContent = rowContent
         self.label = label()
     }
+}
+
+extension TreeSinglePicker {
     
     @MainActor internal struct TreeNode: View {
         

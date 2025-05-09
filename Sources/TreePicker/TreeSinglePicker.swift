@@ -90,12 +90,6 @@ import SwiftUI
     /// The property that store options list state.
     @State private var isOptionsListDisplayed: Bool = false
     
-#if os(macOS)
-    /// ???
-    @Namespace private var popoverNamespace
-    @State private var selectedIndex: Int = 0
-#endif
-    
     /// The content and behavior of the view.
     @MainActor public var body: some View {
 #if os(iOS)
@@ -110,34 +104,16 @@ import SwiftUI
         }
 #elseif os(macOS)
         LabeledContent {
-            self.pullDownButton
+            PullDownButton {
+                self.menu
+            } selection: {
+                self.selectedOption
+            }
         } label: {
             self.label
         }
 #endif
     }
-    
-#if os(macOS)
-    @ViewBuilder private var pullDownButton: some View {
-        Button(action: { self.openOptionsList() }) {
-            HStack(spacing: 0) {
-                self.selectedOption
-                
-                Spacer()
-                
-                LabelChevron()
-            }
-        }
-        // TODO: https://stackoverflow.com/questions/78201062/ios-swiftui-need-to-display-popover-without-arrow
-        // TODO: On macOS you fall back to using an AppKit solution, wrapped in NSViewRepresentable (or NSViewControllerRepresentable).: https://forums.developer.apple.com/forums/thread/676190
-        // TODO: https://developer.apple.com/documentation/appkit/nspopupbutton/arrowposition/noarrow
-        // TODO: https://serialcoder.dev/text-tutorials/macos-tutorials/popup-and-pull-down-buttons-in-appkit/
-        // TODO: https://stackoverflow.com/questions/68744895/swift-ui-macos-menubar-nspopover-no-arrow
-        .popover(isPresented: self.$isOptionsListDisplayed, arrowEdge: .bottom) {
-            self.menu
-        }
-    }
-#endif
     
     @ViewBuilder private var selectedOption: some View {
         if let dataElement = self.selectedDataElement {
@@ -167,14 +143,6 @@ import SwiftUI
         }
         
         return nil
-    }
-    
-    private func openOptionsList() {
-        self.isOptionsListDisplayed = true
-    }
-    
-    private func closeOptionsList() {
-        self.isOptionsListDisplayed = false
     }
     
     private func recursivelyFindSelectedDataElement(from parent: Data.Element) -> Data.Element? {

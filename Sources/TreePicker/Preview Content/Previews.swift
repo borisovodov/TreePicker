@@ -71,6 +71,9 @@ struct TreeSinglePickerPreview: View {
             }
         }
         .padding()
+#if os(macOS)
+        .frame(width: 400, height: 400)
+#endif
     }
 }
 
@@ -103,9 +106,6 @@ struct TreeMultiPickerPreview: View {
             }
         }
         .padding()
-#if os(macOS)
-        .frame(width: 400, height: 400)
-#endif
     }
 }
 

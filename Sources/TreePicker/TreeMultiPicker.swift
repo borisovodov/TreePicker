@@ -107,44 +107,16 @@ import SwiftUI
         }
 #elseif os(macOS)
         LabeledContent {
-            self.pullDownButton
+            PullDownButton {
+                self.menu
+            } selection: {
+                self.selectedOptions
+            }
         } label: {
             self.label
         }
 #endif
     }
-    
-#if os(macOS)
-    @ViewBuilder private var pullDownButton: some View {
-        ZStack {
-            Button(action: { self.toggleOptionsList() }) {
-                HStack(spacing: 0) {
-                    self.selectedOptions
-                    
-                    Spacer()
-                    
-                    LabelChevron()
-                }
-            }
-            .matchedGeometryEffect(
-                id: "labelContent",
-                in: popoverNamespace,
-                anchor: .bottom
-            )
-            
-            if self.isOptionsListDisplayed {
-                self.menu
-                    .matchedGeometryEffect(
-                        id: "labelContent",
-                        in: popoverNamespace,
-                        properties: .position,
-                        anchor: .top,
-                        isSource: false
-                    )
-            }
-        }
-    }
-#endif
     
     @ViewBuilder private var selectedOptions: some View {
         if self.selectedDataElements.isEmpty {
@@ -194,22 +166,6 @@ import SwiftUI
         }
         
         return selection
-    }
-    
-    private func openOptionsList() {
-        self.isOptionsListDisplayed = true
-    }
-    
-    private func toggleOptionsList() {
-        if self.isOptionsListDisplayed {
-            self.closeOptionsList()
-        } else {
-            self.openOptionsList()
-        }
-    }
-    
-    private func closeOptionsList() {
-        self.isOptionsListDisplayed = false
     }
 }
 

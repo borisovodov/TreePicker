@@ -107,29 +107,16 @@ import SwiftUI
         }
 #elseif os(macOS)
         LabeledContent {
-            self.pullDownButton
+            PullDownButton {
+                self.menu
+            } selection: {
+                self.selectedOption
+            }
         } label: {
             self.label
         }
 #endif
     }
-    
-#if os(macOS)
-    @ViewBuilder private var pullDownButton: some View {
-        Button(action: { self.openOptionsList() }) {
-            HStack(spacing: 0) {
-                self.selectedOption
-                
-                Spacer()
-                
-                LabelChevron()
-            }
-        }
-        .popover(isPresented: self.$isOptionsListDisplayed, arrowEdge: .bottom) {
-            self.menu
-        }
-    }
-#endif
     
     @ViewBuilder private var selectedOption: some View {
         if let dataElement = self.selectedDataElement {
@@ -161,14 +148,6 @@ import SwiftUI
         }
         
         return nil
-    }
-    
-    private func openOptionsList() {
-        self.isOptionsListDisplayed = true
-    }
-    
-    private func closeOptionsList() {
-        self.isOptionsListDisplayed = false
     }
     
     private func recursivelyFindSelectedDataElement(from parent: Data.Element) -> Data.Element? {

@@ -70,6 +70,7 @@ struct TreeSinglePickerPreview: View {
                 }
             }
         }
+        .padding()
     }
 }
 
@@ -85,6 +86,7 @@ struct TreeOptionalPickerPreview: View {
                 }
             }
         }
+        .padding()
     }
 }
 
@@ -100,6 +102,10 @@ struct TreeMultiPickerPreview: View {
                 }
             }
         }
+        .padding()
+#if os(macOS)
+        .frame(width: 400, height: 400)
+#endif
     }
 }
 
@@ -136,6 +142,10 @@ struct ListPreview: View {
                 }
             }
         }
+        .padding()
+#if os(macOS)
+        .frame(width: 400, height: 400)
+#endif
     }
 }
 
@@ -156,6 +166,7 @@ struct PickerPreview: View {
                 #endif
             }
         }
+        .padding()
     }
 }
 #endif

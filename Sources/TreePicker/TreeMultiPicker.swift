@@ -90,6 +90,11 @@ import SwiftUI
     
     /// The property that store option list state.
     @State private var isOptionsListDisplayed: Bool = false
+
+#if os(macOS)
+    /// ???
+    @Namespace private var popoverNamespace
+#endif
     
     /// The content and behavior of the view.
     @MainActor public var body: some View {
@@ -116,17 +121,32 @@ import SwiftUI
 #if os(iOS)
         self.selectedOptions
 #elseif os(macOS)
-        Button(action: { self.openOptionsList() }) {
-            HStack(spacing: 0) {
-                self.selectedOptions
-                
-                Spacer()
-                
-                LabelChevron()
+        ZStack {
+            Button(action: { self.toggleOptionsList() }) {
+                HStack(spacing: 0) {
+                    self.selectedOptions
+                    
+                    Spacer()
+                    
+                    LabelChevron()
+                }
             }
-        }
-        .popover(isPresented: self.$isOptionsListDisplayed, arrowEdge: .bottom) {
-            self.menu
+            .matchedGeometryEffect(
+                id: "labelContent",
+                in: popoverNamespace,
+                anchor: .bottom
+            )
+            
+            if self.isOptionsListDisplayed {
+                self.menu
+                    .matchedGeometryEffect(
+                        id: "labelContent",
+                        in: popoverNamespace,
+                        properties: .position,
+                        anchor: .top,
+                        isSource: false
+                    )
+            }
         }
 #endif
     }
@@ -183,6 +203,14 @@ import SwiftUI
     
     private func openOptionsList() {
         self.isOptionsListDisplayed = true
+    }
+    
+    private func toggleOptionsList() {
+        if self.isOptionsListDisplayed {
+            self.closeOptionsList()
+        } else {
+            self.openOptionsList()
+        }
     }
     
     private func closeOptionsList() {

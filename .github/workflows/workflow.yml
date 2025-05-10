@@ -4,8 +4,7 @@ jobs:
   build:
     runs-on: macos-latest
     steps:
-    - name: Setup Swift
-        uses: SwiftyLab/setup-swift@latest
+    - uses: SwiftyLab/setup-swift@latest
     - uses: actions/checkout@main
     - name: Build
       run: swift build

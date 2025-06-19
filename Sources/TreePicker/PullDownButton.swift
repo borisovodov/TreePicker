@@ -87,30 +87,17 @@ import SwiftUI
         
         super.init(contentRect: contentRect, styleMask: [.borderless, .titled, .fullSizeContentView, .utilityWindow, .nonactivatingPanel], backing: .buffered, defer: false)
         
-        /// Allow the panel to be on top of other windows
         isFloatingPanel = true
         level = .floating
         
-        /// Allow the pannel to be overlaid in a fullscreen space
-        collectionBehavior.insert(.fullScreenAuxiliary)
-        
-        /// Don't show a window title, even if it's set
         titleVisibility = .hidden
         titlebarAppearsTransparent = true
         
-        /// Since there is no title bar make the window moveable by dragging on the background
-        isMovableByWindowBackground = true
-        
-        /// Hide when unfocused
         hidesOnDeactivate = true
         
-        /// Hide all traffic light buttons
         standardWindowButton(.closeButton)?.isHidden = true
         standardWindowButton(.miniaturizeButton)?.isHidden = true
         standardWindowButton(.zoomButton)?.isHidden = true
-        
-        /// Sets animations accordingly
-        animationBehavior = .utilityWindow
         
         contentView = NSHostingView(rootView: content())
     }
@@ -153,49 +140,48 @@ import SwiftUI
         let viewFrameInWindow = nsView.convert(nsView.bounds, to: nil)
         let screenFrame = window.convertToScreen(viewFrameInWindow)
         
-        DispatchQueue.main.async { self.screenRect = screenFrame }
+        Task { @MainActor in
+            self.screenRect = screenFrame
+        }
     }
 }
 
 @MainActor class PositionTrackingNSView: NSView {
     var onPositionUpdate: (() -> Void)? = nil
-        private var observers: [NSObjectProtocol] = []
+    private var observers: [NSObjectProtocol] = []
 
-        override func viewDidMoveToWindow() {
-            super.viewDidMoveToWindow()
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
 
-            // Удаляем старых наблюдателей
-            observers.forEach(NotificationCenter.default.removeObserver)
-            observers.removeAll()
+        observers.forEach(NotificationCenter.default.removeObserver)
+        observers.removeAll()
 
-            guard let window = window else { return }
+        guard let window = window else { return }
 
-            // Добавляем наблюдателей для перемещения и изменения размера окна
-            let moveObserver = NotificationCenter.default.addObserver(forName: NSWindow.didMoveNotification, object: window, queue: .main) { [weak self] _ in
-                Task { @MainActor in
-                    self?.onPositionUpdate?()
-                }
+        let moveObserver = NotificationCenter.default.addObserver(forName: NSWindow.didMoveNotification, object: window, queue: .main) { [weak self] _ in
+            Task { @MainActor in
+                self?.onPositionUpdate?()
             }
-            let resizeObserver = NotificationCenter.default.addObserver(forName: NSWindow.didResizeNotification, object: window, queue: .main) { [weak self] _ in
-                Task { @MainActor in
-                    self?.onPositionUpdate?()
-                }
-            }
-            
-            observers.append(moveObserver)
-            observers.append(resizeObserver)
         }
-
-        override func layout() {
-            super.layout()
-            onPositionUpdate?()
+        let resizeObserver = NotificationCenter.default.addObserver(forName: NSWindow.didResizeNotification, object: window, queue: .main) { [weak self] _ in
+            Task { @MainActor in
+                self?.onPositionUpdate?()
+            }
         }
         
-        deinit {
-            // Гарантируем, что наблюдатели будут удалены при уничтожении view
-            MainActor.assumeIsolated {
-                observers.forEach(NotificationCenter.default.removeObserver)
-            }
+        observers.append(moveObserver)
+        observers.append(resizeObserver)
+    }
+
+    override func layout() {
+        super.layout()
+        onPositionUpdate?()
+    }
+    
+    deinit {
+        MainActor.assumeIsolated {
+            observers.forEach(NotificationCenter.default.removeObserver)
         }
+    }
 }
 #endif

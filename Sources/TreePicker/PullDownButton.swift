@@ -61,11 +61,12 @@ import SwiftUI
     
     private var labelChevron: some View {
         Image(systemName: "chevron.down.square.fill")
-            .padding(.trailing, -4)
+            .clipShape(.capsule)
             .symbolRenderingMode(.multicolor)
-            .foregroundStyle(Color.accentColor)
-            .font(.body.bold())
-            .shadow(radius: 2)
+            .foregroundStyle(Color.accentColor.gradient)
+            .font(.title2)
+            .fontWeight(.bold)
+            .padding(.trailing, -6)
     }
     
     private var panelFrame: CGRect {
@@ -85,7 +86,7 @@ import SwiftUI
     init(isPresented: Binding<Bool>, contentRect: CGRect, @ViewBuilder content: @escaping () -> Content) {
         self._isPresented = isPresented
         
-        super.init(contentRect: contentRect, styleMask: [.borderless, .titled, .fullSizeContentView, .utilityWindow, .nonactivatingPanel], backing: .buffered, defer: false)
+        super.init(contentRect: contentRect, styleMask: [.borderless, .fullSizeContentView, .utilityWindow, .nonactivatingPanel], backing: .buffered, defer: false)
         
         isFloatingPanel = true
         level = .floating

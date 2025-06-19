@@ -41,10 +41,6 @@ import SwiftUI
             self.panel = MenuPanel(isPresented: $isMenuPresented, contentRect: self.panelFrame) {
                 self.menu()
             }
-            if self.isMenuPresented {
-                panel?.orderFront(nil)
-                panel?.makeKey()
-            }
         }
         .onDisappear {
             self.panel?.close()
@@ -86,10 +82,10 @@ import SwiftUI
 @MainActor private class MenuPanel<Content: View>: NSPanel {
     @Binding var isPresented: Bool
     
-    init(isPresented: Binding<Bool>, contentRect: CGRect, backing backingStoreType: NSWindow.BackingStoreType = .buffered, defer flag: Bool = false, @ViewBuilder content: @escaping () -> Content) {
+    init(isPresented: Binding<Bool>, contentRect: CGRect, @ViewBuilder content: @escaping () -> Content) {
         self._isPresented = isPresented
         
-        super.init(contentRect: contentRect, styleMask: [.nonactivatingPanel, .titled, .resizable, .closable, .fullSizeContentView], backing: backingStoreType, defer: flag)
+        super.init(contentRect: contentRect, styleMask: [.borderless, .titled, .fullSizeContentView, .utilityWindow, .nonactivatingPanel], backing: .buffered, defer: false)
         
         /// Allow the panel to be on top of other windows
         isFloatingPanel = true
@@ -116,9 +112,7 @@ import SwiftUI
         /// Sets animations accordingly
         animationBehavior = .utilityWindow
         
-        contentView = NSHostingView(rootView: content()
-            .ignoresSafeArea()
-            .environment(\.floatingPanel, self))
+        contentView = NSHostingView(rootView: content())
     }
     
     override func resignMain() {
@@ -134,16 +128,6 @@ import SwiftUI
     override var canBecomeMain: Bool {
         return true
     }
-}
-
-private struct FloatingPanelKey: EnvironmentKey {
-    static let defaultValue: NSPanel? = nil
-}
-extension EnvironmentValues {
-  var floatingPanel: NSPanel? {
-    get { self[FloatingPanelKey.self] }
-    set { self[FloatingPanelKey.self] = newValue }
-  }
 }
 
 @MainActor struct ScreenPositionReader: NSViewRepresentable {
@@ -164,7 +148,7 @@ extension EnvironmentValues {
     
     private func updateScreenRect(nsView: NSView) {
         guard let window = nsView.window else { return }
-                
+        
         // Convert view bounds to screen coordinates
         let viewFrameInWindow = nsView.convert(nsView.bounds, to: nil)
         let screenFrame = window.convertToScreen(viewFrameInWindow)

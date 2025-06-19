@@ -159,10 +159,43 @@ import SwiftUI
 
 @MainActor class PositionTrackingNSView: NSView {
     var onPositionUpdate: (() -> Void)? = nil
-    
-    override func layout() {
-        super.layout()
-        onPositionUpdate?()
-    }
+        private var observers: [NSObjectProtocol] = []
+
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+
+            // Удаляем старых наблюдателей
+            observers.forEach(NotificationCenter.default.removeObserver)
+            observers.removeAll()
+
+            guard let window = window else { return }
+
+            // Добавляем наблюдателей для перемещения и изменения размера окна
+            let moveObserver = NotificationCenter.default.addObserver(forName: NSWindow.didMoveNotification, object: window, queue: .main) { [weak self] _ in
+                Task { @MainActor in
+                    self?.onPositionUpdate?()
+                }
+            }
+            let resizeObserver = NotificationCenter.default.addObserver(forName: NSWindow.didResizeNotification, object: window, queue: .main) { [weak self] _ in
+                Task { @MainActor in
+                    self?.onPositionUpdate?()
+                }
+            }
+            
+            observers.append(moveObserver)
+            observers.append(resizeObserver)
+        }
+
+        override func layout() {
+            super.layout()
+            onPositionUpdate?()
+        }
+        
+        deinit {
+            // Гарантируем, что наблюдатели будут удалены при уничтожении view
+            MainActor.assumeIsolated {
+                observers.forEach(NotificationCenter.default.removeObserver)
+            }
+        }
 }
 #endif

@@ -33,7 +33,7 @@ import SwiftUI
                 
                 Spacer()
                 
-                LabelChevron()
+                self.labelChevron
             }
         }
         .background(ScreenPositionReader(screenRect: $buttonFrame))
@@ -62,6 +62,15 @@ import SwiftUI
         .onChange(of: self.buttonFrame) { _, _ in
             self.panel?.setFrame(self.panelFrame, display: true)
         }
+    }
+    
+    private var labelChevron: some View {
+        Image(systemName: "chevron.down.square.fill")
+            .padding(.trailing, -4)
+            .symbolRenderingMode(.multicolor)
+            .foregroundStyle(Color.accentColor)
+            .font(.body.bold())
+            .shadow(radius: 2)
     }
     
     private var panelFrame: CGRect {

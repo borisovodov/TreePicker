@@ -9,7 +9,6 @@
 import Foundation
 import SwiftUI
 
-@available(macOS 15.0, *)
 @MainActor internal struct PullDownButton<SelectionContent: View, MenuContent: View>: View {
     @Environment(\.appearsActive) private var appearsActive
     

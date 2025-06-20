@@ -2,7 +2,7 @@ name: build and test
 on: [push]
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-15
     steps:
     - uses: SwiftyLab/setup-swift@latest
     - uses: actions/checkout@main

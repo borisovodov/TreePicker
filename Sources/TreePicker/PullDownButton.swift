@@ -5,10 +5,10 @@
 //  Created by Boris Ovodov on 09.05.2025.
 //
 
+#if os(macOS)
 import Foundation
 import SwiftUI
 
-#if os(macOS)
 @MainActor internal struct PullDownButton<SelectionContent: View, MenuContent: View>: View {
     @Environment(\.appearsActive) private var appearsActive
     

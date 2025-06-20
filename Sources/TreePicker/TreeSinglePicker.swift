@@ -61,7 +61,7 @@ import SwiftUI
 ///
 /// ### Selection methods
 /// You can allow all nodes selection or only leaves. For this you need to specify `selectionMethod` parameter. By default parameter equal ``SelectionMethod/leafNodes`` value. It means that only node without children will be selectable. If choose ``SelectionMethod/nodes`` value, all nodes (include *folders*) will be selectable.
-@available(macOS 14.0, iOS 16.0, visionOS 1.0, *)
+@available(macOS 15.0, iOS 16.0, visionOS 1.0, *)
 @available(tvOS, unavailable)
 @available(watchOS, unavailable)
 @MainActor public struct TreeSinglePicker<Label: View, SelectionValue: Hashable, Data: RandomAccessCollection, ID: Hashable, RowContent: View> : View {

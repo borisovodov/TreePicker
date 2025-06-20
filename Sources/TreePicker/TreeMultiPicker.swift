@@ -61,7 +61,7 @@ import SwiftUI
 ///
 /// ### Selection methods
 /// You can allow all nodes selection or only leaves. For this you need to specify `selectionMethod` parameter. By default parameter equal ``MultiSelectionMethod/leafNodes`` value. It means that only node without children will be selectable. If choose ``MultiSelectionMethod/independent`` value, all nodes (include *folders*) will be selectable. For cascading selection of option children you need to use ``MultiSelectionMethod/cascading`` value.
-@available(macOS 14.0, iOS 16.0, visionOS 1.0, *)
+@available(macOS 15.0, iOS 16.0, visionOS 1.0, *)
 @available(tvOS, unavailable)
 @available(watchOS, unavailable)
 @MainActor public struct TreeMultiPicker<Label: View, SelectionValue: Hashable, Data: RandomAccessCollection, ID: Hashable, RowContent: View, EmptySelectionContent: View> : View {

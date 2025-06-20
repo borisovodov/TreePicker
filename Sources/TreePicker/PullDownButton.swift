@@ -10,7 +10,7 @@ import SwiftUI
 
 #if os(macOS)
 @MainActor internal struct PullDownButton<SelectionContent: View, MenuContent: View>: View {
-    @Environment(\.appearsActive) var appearsActive
+    @Environment(\.appearsActive) private var appearsActive
     
     @State private var isMenuPresented: Bool = false
     

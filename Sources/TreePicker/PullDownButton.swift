@@ -95,21 +95,32 @@ import SwiftUI
         
         super.init(contentRect: contentRect, styleMask: [.borderless, .fullSizeContentView, .utilityWindow, .nonactivatingPanel], backing: .buffered, defer: false)
         
-        isFloatingPanel = true
-        level = .floating
+        self.isFloatingPanel = true
+        self.level = .floating
         
-        hidesOnDeactivate = true
+        self.hidesOnDeactivate = true
         
-        standardWindowButton(.closeButton)?.isHidden = true
-        standardWindowButton(.miniaturizeButton)?.isHidden = true
-        standardWindowButton(.zoomButton)?.isHidden = true
+        self.standardWindowButton(.closeButton)?.isHidden = true
+        self.standardWindowButton(.miniaturizeButton)?.isHidden = true
+        self.standardWindowButton(.zoomButton)?.isHidden = true
         
-        contentView = NSHostingView(rootView: content())
+        self.contentView = NSHostingView(
+            rootView: content()
+        )
+        
+        // Monitoring mouse clicks for closing the menu if click outside
+        NSEvent.addLocalMonitorForEvents(matching: NSEvent.EventTypeMask.leftMouseDown) { (event) -> NSEvent? in
+            let pointOnScreen = self.convertPoint(toScreen: event.locationInWindow)
+            if !self.frame.contains(pointOnScreen) && self.isPresented == true {
+                self.isPresented = false
+            }
+            return event
+        }
     }
     
     override func resignMain() {
         super.resignMain()
-        close()
+        self.close()
     }
     
     override func close() {

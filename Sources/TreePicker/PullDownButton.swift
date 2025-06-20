@@ -10,6 +10,7 @@ import SwiftUI
 
 #if os(macOS)
 @MainActor internal struct PullDownButton<SelectionContent: View, MenuContent: View>: View {
+    @Environment(\.appearsActive) var appearsActive
     
     @State private var isMenuPresented: Bool = false
     
@@ -49,13 +50,18 @@ import SwiftUI
         }
         .onChange(of: self.isMenuPresented) { _, newValue in
             if newValue {
-                panel?.orderFront(nil)
+                self.panel?.orderFront(nil)
             } else {
                 self.panel?.close()
             }
         }
         .onChange(of: self.buttonFrame) { _, _ in
             self.panel?.setFrame(self.panelFrame, display: true)
+        }
+        .onChange(of: appearsActive) { _, newValue in
+            if !newValue {
+                self.isMenuPresented = false
+            }
         }
     }
     
@@ -90,9 +96,6 @@ import SwiftUI
         
         isFloatingPanel = true
         level = .floating
-        
-        titleVisibility = .hidden
-        titlebarAppearsTransparent = true
         
         hidesOnDeactivate = true
         

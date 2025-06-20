@@ -50,12 +50,13 @@ import SwiftUI
         }
         .onChange(of: self.isMenuPresented) { _, newValue in
             if newValue {
+                self.panel?.setFrame(self.panelFrame, display: true)
                 self.panel?.orderFront(nil)
             } else {
                 self.panel?.close()
             }
         }
-        .onChange(of: self.buttonFrame) { _, _ in
+        .onChange(of: self.buttonFrame) {
             self.panel?.setFrame(self.panelFrame, display: true)
         }
         .onChange(of: appearsActive) { _, newValue in
@@ -128,7 +129,7 @@ import SwiftUI
         let view = PositionTrackingNSView()
         view.onPositionUpdate = { [weak view] in
             guard let nsView = view else { return }
-            updateScreenRect(nsView: nsView)
+            self.updateScreenRect(nsView: nsView)
         }
         return view
     }
@@ -160,7 +161,7 @@ import SwiftUI
         observers.forEach(NotificationCenter.default.removeObserver)
         observers.removeAll()
 
-        guard let window = window else { return }
+        guard let window = self.window else { return }
 
         let moveObserver = NotificationCenter.default.addObserver(forName: NSWindow.didMoveNotification, object: window, queue: .main) { [weak self] _ in
             Task { @MainActor in
@@ -172,9 +173,15 @@ import SwiftUI
                 self?.onPositionUpdate?()
             }
         }
+        let fullScreenObserver = NotificationCenter.default.addObserver(forName: NSWindow.didEnterFullScreenNotification, object: window, queue: .main) { [weak self] _ in
+            Task { @MainActor in
+                self?.onPositionUpdate?()
+            }
+        }
         
         observers.append(moveObserver)
         observers.append(resizeObserver)
+        observers.append(fullScreenObserver)
     }
 
     override func layout() {

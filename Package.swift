@@ -13,15 +13,18 @@ let package = Package(
     products: [
         .library(
             name: "TreePicker",
-            targets: ["TreePicker"]),
+            targets: ["TreePicker"]
+        ),
     ],
     targets: [
         .target(
             name: "TreePicker",
-            resources: [.process("Resources")]
+            exclude: ["TreePicker.docc"],
+            resources: [.process("Resources")],
         ),
         .testTarget(
             name: "TreePickerTests",
-            dependencies: ["TreePicker"]),
+            dependencies: ["TreePicker"]
+        ),
     ]
 )

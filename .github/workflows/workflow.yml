@@ -9,3 +9,6 @@ jobs:
       run: swift build
     - name: Test
       run: swift test --enable-code-coverage
+    - uses: vapor/swift-codecov-action@v0.3.2
+      with:
+        codecov_token: ${{ secrets.CODECOV_TOKEN }}
